@@ -228,8 +228,47 @@ Select text, then use the tools below to style just that part."></textarea>
             <strong>How it works:</strong> set <em>Apply to</em> → <code>Selection</code>, highlight part of the text, then click a tool to style just that bit.
             Set it to <code>Entire</code> to change the default for the whole dialogue.
             Styles nest, and you can type the tags by hand too:
-            <code>[c=#ff0000]red[/c]</code> · <code>[rb]rainbow[/rb]</code> · <code>[a=wave]animated[/a]</code> · <code>[stable]no glitch[/stable]</code>.
+            <code>[c=#ff0000]red[/c]</code> · <code>[rb]rainbow[/rb]</code> · <code>[a=wave]animated[/a]</code> · <code>[f=Impact]font[/f]</code> · <code>[stable]no glitch[/stable]</code>.
             Leave everything untouched for the classic green matrix thinygy.
+        </div>
+    </div>
+
+    <!-- ── FONTS ── -->
+    <div class="panel">
+        <h2>Font</h2>
+        <div class="row">
+            <div class="field inline">
+                Font
+                <select id="fontSelect">
+                    <option value="&quot;Courier New&quot;, Courier, monospace">Courier New (default)</option>
+                    <option value="Consolas, &quot;Lucida Console&quot;, monospace">Consolas</option>
+                    <option value="Arial, sans-serif">Arial</option>
+                    <option value="Impact, sans-serif">Impact</option>
+                    <option value="Georgia, serif">Georgia</option>
+                    <option value="&quot;Times New Roman&quot;, serif">Times New Roman</option>
+                    <option value="&quot;Comic Sans MS&quot;, cursive">Comic Sans MS</option>
+                    <option value="Verdana, sans-serif">Verdana</option>
+                    <option value="&quot;Trebuchet MS&quot;, sans-serif">Trebuchet MS</option>
+                </select>
+                <button id="applyFont" class="alt">Apply</button>
+            </div>
+
+            <label class="field">Font Size <input type="range" id="fontSize" min="8" max="80" value="20"></label>
+
+            <div class="field inline">
+                Google Font
+                <input type="text" id="gfontName" placeholder="e.g. Press Start 2P" style="width:150px;background:#000;color:#0f0;border:1px solid #00aa00;border-radius:4px;padding:6px 8px;font-family:inherit;">
+                <button id="loadGFont" class="alt">Load</button>
+            </div>
+
+            <div class="field inline">
+                Upload font
+                <input type="file" id="fontFile" accept=".ttf,.otf,.woff,.woff2,font/*" style="font-size:0.7rem;max-width:180px;">
+            </div>
+        </div>
+        <div class="hint">
+            Pick a built-in font, type any <strong>Google Font</strong> name and hit Load, or upload a <code>.ttf/.otf/.woff</code> file —
+            then <strong>Apply</strong> (respects the Selection/Entire toggle above). Per-part by hand: <code>[f=Font Name]styled[/f]</code>.
         </div>
     </div>
 
@@ -281,15 +320,27 @@ Select text, then use the tools below to style just that part."></textarea>
         const statusEl = document.getElementById('status');
 
         const DEFAULT_COLOR = '#00ff00';
-        const FONT = '20px "Courier New", Courier, monospace';
-        const LINE_HEIGHT = 28;
+        const DEFAULT_FONT = '"Courier New", Courier, monospace';
         const WRAP_WIDTH = 380;
+
+        const fontSelect = document.getElementById('fontSelect');
+        const fontSizeEl = document.getElementById('fontSize');
 
         // ── Global (whole-dialogue) defaults — these reproduce the classic look ──
         let globalColor = DEFAULT_COLOR;
         let globalRainbow = false;
         let globalAnim = 'none';
+        let globalFontCss = DEFAULT_FONT;
         let applyMode = 'selection';
+        let curFontSize = 20;   // updated each frame from the slider
+
+        // first family of a CSS font string, unquoted (for the [f=..] tag)
+        function familyName(css) { return css.split(',')[0].trim().replace(/^["']|["']$/g, ''); }
+        // build a canvas font string for a glyph (per-part [f=] overrides the global font)
+        function fontStrFor(g) {
+            const fam = g.font ? ('"' + g.font + '", sans-serif') : globalFontCss;
+            return curFontSize + 'px ' + fam;
+        }
 
         const leetMap = {
             'a': '4', 'e': '3', 'i': '1', 'o': '0', 's': '5', 't': '7',
@@ -329,11 +380,12 @@ Select text, then use the tools below to style just that part."></textarea>
         }
 
         // ── Parse the markup tags into a flat list of styled glyphs ──
-        // Tags: [c=#hex]..[/c]  [rb]..[/rb]  [a=name]..[/a]  [stable]..[/stable]
-        const TAG_RE = /^\[(\/)?(c=#[0-9a-fA-F]{3,8}|c|rb|a=[a-z]+|a|stable)\]/;
+        // Tags: [c=#hex]..[/c] [rb]..[/rb] [a=name]..[/a] [f=Font]..[/f] [stable]..[/stable]
+        const TAG_RE = /^\[(\/)?(c=#[0-9a-fA-F]{3,8}|c|rb|a=[a-z]+|a|stable|f=[^\]]+|f)\]/;
+        const STRIP_RE = /\[\/?(c=#[0-9a-fA-F]{3,8}|c|rb|a=[a-z]+|a|stable|f=[^\]]+|f)\]/g;
         function parseMarkup(raw) {
             const glyphs = [];
-            const st = { color: [], rainbow: 0, anim: [], stable: 0 };
+            const st = { color: [], rainbow: 0, anim: [], stable: 0, font: [] };
             let hasAnim = false;
             let i = 0;
             while (i < raw.length) {
@@ -345,6 +397,8 @@ Select text, then use the tools below to style just that part."></textarea>
                     else if (body === 'rb') { st.rainbow += closing ? -1 : 1; }
                     else if (body.indexOf('a=') === 0) { if (!closing) { st.anim.push(body.slice(2)); hasAnim = true; } }
                     else if (body === 'a') { if (closing) st.anim.pop(); }
+                    else if (body.indexOf('f=') === 0) { if (!closing) st.font.push(body.slice(2)); }
+                    else if (body === 'f') { if (closing) st.font.pop(); }
                     else if (body === 'stable') { st.stable += closing ? -1 : 1; }
                     i += m[0].length;
                     continue;
@@ -354,6 +408,7 @@ Select text, then use the tools below to style just that part."></textarea>
                     color: st.color.length ? st.color[st.color.length - 1] : null,
                     rainbow: st.rainbow > 0,
                     anim: st.anim.length ? st.anim[st.anim.length - 1] : null,
+                    font: st.font.length ? st.font[st.font.length - 1] : null,
                     stable: st.stable > 0
                 });
                 i++;
@@ -361,32 +416,35 @@ Select text, then use the tools below to style just that part."></textarea>
             return { glyphs, hasAnim };
         }
 
-        // ── Word-wrap the glyphs into placed cells (monospace makes this exact) ──
-        function layout(glyphs, charW, maxCols) {
+        // ── Pixel-based word wrap (handles any font, proportional or mono) ──
+        function advanceOf(g) { ctx.font = fontStrFor(g); return ctx.measureText(g.ch).width; }
+        function layout(glyphs, maxWidth) {
             const placed = [];
-            let line = 0, col = 0, gi = 0, maxCol = 0;
+            let line = 0, x = 0, gi = 0, maxW = 0;
             let i = 0;
             while (i < glyphs.length) {
                 const g = glyphs[i];
-                if (g.ch === '\n') { line++; col = 0; i++; continue; }
+                if (g.ch === '\n') { if (x > maxW) maxW = x; line++; x = 0; i++; continue; }
                 if (g.ch === ' ') {
-                    if (col >= maxCols) { line++; col = 0; }
-                    placed.push({ g, line, col, gi: gi++, draw: false });
-                    col++; i++; continue;
+                    const w = advanceOf(g);
+                    if (x > 0 && x > maxWidth) { if (x > maxW) maxW = x; line++; x = 0; }
+                    placed.push({ g, line, x, w, gi: gi++, draw: false });
+                    x += w; i++; continue;
                 }
                 // measure this word (run of non-space chars)
-                let j = i, wlen = 0;
-                while (j < glyphs.length && glyphs[j].ch !== ' ' && glyphs[j].ch !== '\n') { wlen++; j++; }
-                if (wlen <= maxCols && col + wlen > maxCols && col > 0) { line++; col = 0; }
-                for (let k = i; k < j; k++) {
-                    if (col >= maxCols) { line++; col = 0; }
-                    placed.push({ g: glyphs[k], line, col, gi: gi++, draw: true });
-                    if (col > maxCol) maxCol = col;
-                    col++;
+                let j = i; const ws = []; let wordW = 0;
+                while (j < glyphs.length && glyphs[j].ch !== ' ' && glyphs[j].ch !== '\n') { const w = advanceOf(glyphs[j]); ws.push(w); wordW += w; j++; }
+                if (wordW <= maxWidth && x > 0 && x + wordW > maxWidth) { if (x > maxW) maxW = x; line++; x = 0; }
+                for (let k = 0; k < ws.length; k++) {
+                    if (x > 0 && x + ws[k] > maxWidth) { if (x > maxW) maxW = x; line++; x = 0; }   // hard-break long words
+                    placed.push({ g: glyphs[i + k], line, x, w: ws[k], gi: gi++, draw: true });
+                    x += ws[k];
+                    if (x > maxW) maxW = x;
                 }
                 i = j;
             }
-            return { placed, lines: line + 1, cols: maxCol + 1 };
+            if (x > maxW) maxW = x;
+            return { placed, lines: line + 1, width: maxW };
         }
 
         function corruptChar(ch, intensity, zalgoLevel) {
@@ -416,23 +474,23 @@ Select text, then use the tools below to style just that part."></textarea>
                 return;
             }
 
+            curFontSize = parseInt(fontSizeEl.value);
+            const lineHeight = Math.round(curFontSize * 1.4);
+
             const { glyphs, hasAnim } = parseMarkup(raw);
             const animActive = hasAnim || globalAnim !== 'none';
 
-            ctx.font = FONT;
-            const charW = ctx.measureText('M').width;
-            const maxCols = Math.max(1, Math.floor(WRAP_WIDTH / charW));
-            const { placed, lines, cols } = layout(glyphs, charW, maxCols);
+            const maxWidth = WRAP_WIDTH * (curFontSize / 20);
+            const { placed, lines, width } = layout(glyphs, maxWidth);
 
-            // padding (extra room so animated glyphs & glow don't clip)
-            const pad = 22 + (animActive ? animAmp + 8 : 6) + Math.ceil(glow * 0.4);
-            const newW = Math.max(60, Math.ceil(cols * charW + pad * 2));
-            const newH = Math.max(60, Math.ceil(lines * LINE_HEIGHT + pad * 2));
+            // padding (extra room so animated glyphs, descenders & glow don't clip)
+            const pad = Math.round(curFontSize * 0.55) + (animActive ? animAmp + 8 : 6) + Math.ceil(glow * 0.4);
+            const newW = Math.max(60, Math.ceil(width + pad * 2));
+            const newH = Math.max(60, Math.ceil(lines * lineHeight + pad * 2));
             if (canvas.width !== newW || canvas.height !== newH) { canvas.width = newW; canvas.height = newH; }
 
             ctx.fillStyle = '#000'; ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            ctx.font = FONT;
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
 
@@ -461,14 +519,15 @@ Select text, then use the tools below to style just that part."></textarea>
 
                 const char = stable ? g.ch : corruptChar(g.ch, intensity, zalgoLevel);
 
-                const cx = pad + p.col * charW + charW / 2;
-                const cy = pad + p.line * LINE_HEIGHT + LINE_HEIGHT / 2;
+                const cx = pad + p.x + p.w / 2;
+                const cy = pad + p.line * lineHeight + lineHeight / 2;
 
                 let off = {};
                 if (animName && ANIMS[animName]) off = ANIMS[animName](t, p.gi, animSpeed, animAmp);
                 const dx = off.dx || 0, dy = off.dy || 0, rot = off.rot || 0, scale = off.scale || 1;
 
                 ctx.save();
+                ctx.font = fontStrFor(g);
                 ctx.translate(cx + dx, cy + dy);
                 if (rot) ctx.rotate(rot);
                 if (scale !== 1) ctx.scale(scale, scale);
@@ -610,19 +669,72 @@ Select text, then use the tools below to style just that part."></textarea>
         document.getElementById('clearSel').addEventListener('click', () => {
             const s = inputEl.selectionStart, e = inputEl.selectionEnd, v = inputEl.value;
             if (s === e) { setStatus('Select the text whose tags you want to strip.'); return; }
-            const cleaned = v.slice(s, e).replace(/\[\/?(c=#[0-9a-fA-F]{3,8}|c|rb|a=[a-z]+|a|stable)\]/g, '');
+            const cleaned = v.slice(s, e).replace(STRIP_RE, '');
             inputEl.value = v.slice(0, s) + cleaned + v.slice(e);
             inputEl.selectionStart = s; inputEl.selectionEnd = s + cleaned.length;
             inputEl.focus();
         });
 
         document.getElementById('resetAll').addEventListener('click', () => {
-            inputEl.value = inputEl.value.replace(/\[\/?(c=#[0-9a-fA-F]{3,8}|c|rb|a=[a-z]+|a|stable)\]/g, '');
-            globalColor = DEFAULT_COLOR; globalRainbow = false; globalAnim = 'none';
+            inputEl.value = inputEl.value.replace(STRIP_RE, '');
+            globalColor = DEFAULT_COLOR; globalRainbow = false; globalAnim = 'none'; globalFontCss = DEFAULT_FONT;
             document.getElementById('animSelect').value = 'none';
             document.getElementById('colorPick').value = DEFAULT_COLOR;
+            fontSelect.selectedIndex = 0;
+            fontSizeEl.value = 20; curFontSize = 20;
             refreshGlobalButtons();
             setStatus('Reset to the classic green glitch.');
+        });
+
+        // ── Fonts: pick built-in, load any Google Font, or upload a font file ──
+        function addFontOption(label, value) {
+            let opt = [...fontSelect.options].find(o => o.value === value);
+            if (!opt) { opt = document.createElement('option'); opt.value = value; opt.textContent = label; fontSelect.appendChild(opt); }
+            fontSelect.value = value;
+        }
+
+        document.getElementById('applyFont').addEventListener('click', () => {
+            const css = fontSelect.value;
+            if (applyMode === 'all') { globalFontCss = css; setStatus('Whole-dialogue font: ' + fontSelect.options[fontSelect.selectedIndex].text); }
+            else wrapSelection('[f=' + familyName(css) + ']', '[/f]');
+        });
+
+        // changing the dropdown applies live when in "Entire" mode
+        fontSelect.addEventListener('change', () => {
+            if (applyMode === 'all') { globalFontCss = fontSelect.value; setStatus('Whole-dialogue font: ' + fontSelect.options[fontSelect.selectedIndex].text); }
+        });
+
+        document.getElementById('loadGFont').addEventListener('click', async () => {
+            const name = document.getElementById('gfontName').value.trim();
+            if (!name) { setStatus('Type a Google Font name first.'); return; }
+            const href = 'https://fonts.googleapis.com/css2?family=' + name.trim().replace(/\s+/g, '+') + '&display=swap';
+            if (!document.querySelector('link[data-gf="' + name + '"]')) {
+                const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = href; l.dataset.gf = name; document.head.appendChild(l);
+            }
+            setStatus('Loading "' + name + '"...');
+            try {
+                await new Promise(r => setTimeout(r, 250));   // give the <link> a beat to register
+                await document.fonts.load('20px "' + name + '"');
+                await document.fonts.ready;
+                addFontOption(name, '"' + name + '", sans-serif');
+                if (applyMode === 'all') globalFontCss = fontSelect.value;
+                setStatus('Loaded Google Font "' + name + '". Hit Apply (or it\'s already live in Entire mode).');
+            } catch (err) { setStatus('Could not load "' + name + '" — check the spelling.'); }
+        });
+
+        document.getElementById('fontFile').addEventListener('change', async (ev) => {
+            const file = ev.target.files[0]; if (!file) return;
+            const name = (file.name.replace(/\.[^.]+$/, '').replace(/[^a-zA-Z0-9_ -]/g, '').trim()) || 'CustomFont';
+            setStatus('Loading "' + name + '"...');
+            try {
+                const buf = await file.arrayBuffer();
+                const ff = new FontFace(name, buf);
+                await ff.load();
+                document.fonts.add(ff);
+                addFontOption(name, '"' + name + '", sans-serif');
+                if (applyMode === 'all') globalFontCss = fontSelect.value;
+                setStatus('Loaded font "' + name + '". Hit Apply (or it\'s already live in Entire mode).');
+            } catch (err) { setStatus('Failed to load that font file.'); }
         });
 
         framesEl.addEventListener('input', () => framesVal.textContent = framesEl.value);
