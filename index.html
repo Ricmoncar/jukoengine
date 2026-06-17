@@ -301,8 +301,7 @@ Select text, then use the tools below to style just that part."></textarea>
             </div>
         </div>
         <div class="hint">
-            Pick a built-in font, type any <strong>Google Font</strong> name and hit Load, or upload a <code>.ttf/.otf/.woff</code> file —
-            then <strong>Apply</strong> (respects the Selection/Entire toggle above). Per-part by hand: <code>[f=Font Name]styled[/f]</code>.
+            Pick a built-in font, type any <strong>Google Font</strong> name and hit Load, or upload a <code>.ttf/.otf/.woff</code> file - then <strong>Apply</strong> (respects the Selection/Entire toggle above). Per-part by hand: <code>[f=Font Name]styled[/f]</code>.
         </div>
     </div>
 
@@ -331,7 +330,6 @@ Select text, then use the tools below to style just that part."></textarea>
         <img id="resultImg" alt="generated gif">
         <div class="result-btns">
             <button id="copyLinkBtn" class="link" title="Upload &amp; copy a link that auto-plays in Discord/Slack/etc.">📎 Copy Link</button>
-            <button id="copyBtn">Copy GIF</button>
             <button id="downloadBtn" class="alt">⬇ Download</button>
         </div>
     </div>
@@ -377,7 +375,7 @@ Select text, then use the tools below to style just that part."></textarea>
         const fontSelect = document.getElementById('fontSelect');
         const fontSizeEl = document.getElementById('fontSize');
 
-        // ── Global (whole-dialogue) defaults — these reproduce the classic look ──
+        // ── Global (whole-dialogue) defaults - these reproduce the classic look ──
         let globalColor = DEFAULT_COLOR;
         let globalRainbow = false;
         let globalAnim = 'none';
@@ -397,7 +395,7 @@ Select text, then use the tools below to style just that part."></textarea>
             'a': '4', 'e': '3', 'i': '1', 'o': '0', 's': '5', 't': '7',
             'A': '4', 'E': '3', 'I': '1', 'O': '0', 'S': '5', 'T': '7'
         };
-        const glitchChars = '!<>-_\\\\/[]{}—=+*^?#_010101';
+        const glitchChars = '!<>-_\\\\/[]{} - =+*^?#_010101';
         const zalgoChars = ['̍', '̎', '̄', '̅', '̿', '̑', '̆', '̐', '̕', '̛', '̧', '̨', '̴', '̵', '̶'];
 
         let capturedFrames = [];
@@ -545,7 +543,7 @@ Select text, then use the tools below to style just that part."></textarea>
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
 
-            // whole-frame white flicker — only affects classic default-green glyphs
+            // whole-frame white flicker - only affects classic default-green glyphs
             const frameFlash = Math.random() > 0.88;
 
             for (const p of placed) {
@@ -652,23 +650,6 @@ Select text, then use the tools below to style just that part."></textarea>
             a.click();
         });
 
-        document.getElementById('copyBtn').addEventListener('click', async () => {
-            if (!resultImg.src) return;
-            try {
-                if (!navigator.clipboard || !window.ClipboardItem) throw new Error('Clipboard API unavailable');
-                const blob = await (await fetch(resultImg.src)).blob();
-                await navigator.clipboard.write([new ClipboardItem({ [blob.type]: blob })]);
-                setStatus('✅ GIF copied to clipboard!');
-            } catch (err) {
-                // Fallbacks: many browsers refuse image/gif on the clipboard.
-                try {
-                    await navigator.clipboard.writeText(resultImg.src);
-                    setStatus('⚠ This browser won\'t put a GIF on the clipboard. copied the image data instead. (Tip: right-click the preview → Copy image.)');
-                } catch (e2) {
-                    setStatus('⚠ Copy blocked here. Right-click the preview image → "Copy image".');
-                }
-            }
-        });
 
         // ── Selection / global style tools ──
         function wrapSelection(open, close) {
@@ -770,7 +751,7 @@ Select text, then use the tools below to style just that part."></textarea>
                 addFontOption(name, '"' + name + '", sans-serif');
                 if (applyMode === 'all') globalFontCss = fontSelect.value;
                 setStatus('Loaded Google Font "' + name + '". Hit Apply (or it\'s already live in Entire mode).');
-            } catch (err) { setStatus('Could not load "' + name + '" — check the spelling.'); }
+            } catch (err) { setStatus('Could not load "' + name + '" - check the spelling.'); }
         });
 
         document.getElementById('fontFile').addEventListener('change', async (ev) => {
@@ -818,7 +799,7 @@ Select text, then use the tools below to style just that part."></textarea>
             firebase.initializeApp(firebaseConfig);
             db = firebase.firestore();
         } catch (e) {
-            console.warn('Firebase init failed — gallery/shared fonts disabled.', e);
+            console.warn('Firebase init failed - gallery/shared fonts disabled.', e);
         }
 
         // ── Cloudinary signed upload helper ──
@@ -887,22 +868,19 @@ Select text, then use the tools below to style just that part."></textarea>
             try {
                 const snap = await db.collection('gifs').orderBy('createdAt', 'desc').limit(40).get();
                 galleryGrid.innerHTML = '';
-                if (snap.empty) { galleryEmpty.style.display = 'block'; galleryEmpty.textContent = 'No GIFs yet — be the first! Generate one and hit 📎 Copy Link.'; return; }
+                if (snap.empty) { galleryEmpty.style.display = 'block'; galleryEmpty.textContent = 'No GIFs yet - be the first! Generate one and hit 📎 Copy Link.'; return; }
                 galleryEmpty.style.display = 'none';
                 snap.forEach(doc => {
                     const d = doc.data(); if (!d.url) return;
                     const item = document.createElement('div');
                     item.className = 'gallery-item';
-                    item.title = 'Click to copy link';
+                    item.title = 'Click to open';
                     const img = document.createElement('img');
                     img.loading = 'lazy'; img.src = d.url; img.alt = d.text || 'gif';
                     const cap = document.createElement('div');
                     cap.className = 'cap'; cap.textContent = d.text || '(no text)';
                     item.appendChild(img); item.appendChild(cap);
-                    item.addEventListener('click', async () => {
-                        try { await navigator.clipboard.writeText(d.url); setStatus('✅ Link copied: ' + d.url); }
-                        catch (_) { window.open(d.url, '_blank'); }
-                    });
+                    item.addEventListener('click', () => { window.open(d.url, '_blank', 'noopener'); });
                     galleryGrid.appendChild(item);
                 });
             } catch (e) {
@@ -926,7 +904,7 @@ Select text, then use the tools below to style just that part."></textarea>
                 await db.collection('fonts').add({
                     name, url, createdAt: firebase.firestore.FieldValue.serverTimestamp()
                 });
-                setStatus('Font "' + name + '" shared — everyone can use it now.');
+                setStatus('Font "' + name + '" shared - everyone can use it now.');
             } catch (e) { console.warn('Font share failed', e); }
         });
 
@@ -945,7 +923,7 @@ Select text, then use the tools below to style just that part."></textarea>
                         opt.value = '"' + d.name + '", sans-serif';
                         opt.textContent = d.name + ' (shared)';
                         fontSelect.appendChild(opt);
-                    } catch (e) { /* font failed to load — skip */ }
+                    } catch (e) { /* font failed to load - skip */ }
                 });
             } catch (e) { console.warn('Shared fonts load failed', e); }
         }
