@@ -6,10 +6,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Neon Glitch GIF Generator</title>
     <script src="gifshot.min.js"></script>
+    <!-- Firebase (compat build so it works in this plain inline script) -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
     <style>
         :root { --accent: #00ff00; }
+        html { background-color: #050505; }
+        #matrix {
+            position: fixed; inset: 0; width: 100%; height: 100%;
+            z-index: -1; pointer-events: none; opacity: 0.55;
+        }
         body {
-            background-color: #050505;
+            background-color: transparent;
             color: #00ff00;
             font-family: 'Courier New', Courier, monospace;
             display: flex;
@@ -159,10 +167,36 @@
         .result-btns { display:flex; gap:12px; flex-wrap:wrap; justify-content:center; }
         .generate-row { margin-top: 18px; display:flex; gap:14px; align-items:center; flex-wrap:wrap; justify-content:center; }
         .big { padding: 12px 26px; font-size: 0.95rem; }
+
+        /* panels sit above the matrix with a slightly translucent backing */
+        .panel, .container textarea, .canvas-wrapper { background-color: rgba(8, 12, 8, 0.82); }
+        .panel { background: rgba(12, 15, 12, 0.86); }
+
+        /* ── Gallery ── */
+        .gallery-head { display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+        .gallery-grid {
+            display:grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap:12px; margin-top:14px;
+        }
+        .gallery-item {
+            border:1px solid #064006; border-radius:6px; overflow:hidden; background:#000;
+            cursor:pointer; transition: box-shadow .15s ease, transform .15s ease; position:relative;
+        }
+        .gallery-item:hover { box-shadow:0 0 14px rgba(0,255,0,0.4); transform: translateY(-2px); }
+        .gallery-item img { width:100%; display:block; aspect-ratio:1; object-fit:contain; background:#000; }
+        .gallery-item .cap {
+            font-size:0.6rem; color:#7ad17a; padding:5px 6px; white-space:nowrap;
+            overflow:hidden; text-overflow:ellipsis; border-top:1px solid #062a06;
+        }
+        .gallery-empty { font-size:0.74rem; color:#4a7a4a; margin-top:12px; }
+        button.link { border-color:#00aaee; color:#33ddff; }
+        button.link:hover { background:#33ddff; color:#000; box-shadow:0 0 16px #33ddff; }
     </style>
 </head>
 
 <body>
+
+    <canvas id="matrix" aria-hidden="true"></canvas>
 
     <h1>// JUKO ENGINE //</h1>
 
@@ -296,12 +330,29 @@ Select text, then use the tools below to style just that part."></textarea>
     <div id="result">
         <img id="resultImg" alt="generated gif">
         <div class="result-btns">
+            <button id="copyLinkBtn" class="link" title="Upload &amp; copy a link that auto-plays in Discord/Slack/etc.">📎 Copy Link</button>
             <button id="copyBtn">Copy GIF</button>
             <button id="downloadBtn" class="alt">⬇ Download</button>
         </div>
     </div>
 
     <div id="status"></div>
+
+    <!-- ── PUBLIC GALLERY ── -->
+    <div class="panel">
+        <div class="gallery-head">
+            <h2 style="margin:0;border:none;padding:0;">Gallery</h2>
+            <div class="field inline" style="gap:10px;">
+                <label class="field inline" style="font-size:0.68rem;">
+                    <input type="checkbox" id="shareToggle" checked style="accent-color:#00ff00;"> Share on Copy Link
+                </label>
+                <button id="refreshGallery" class="alt" style="font-size:0.7rem;padding:6px 12px;">↻ Refresh</button>
+            </div>
+        </div>
+        <div class="gallery-grid" id="galleryGrid"></div>
+        <div class="gallery-empty" id="galleryEmpty">Loading recent creations…</div>
+        <div class="hint">Hit <strong>📎 Copy Link</strong> on a GIF to share it here for everyone. Click any tile to copy its link.</div>
+    </div>
 
     <script>
         const inputEl = document.getElementById('input');
@@ -741,6 +792,230 @@ Select text, then use the tools below to style just that part."></textarea>
 
         // Run engine loop at 12fps (keeps performance smooth and GIF sizes reasonable)
         setInterval(generateFrame, 1000 / 12);
+    </script>
+
+    <!-- ════════ CLOUD: Cloudinary uploads + Firebase (gallery, shared fonts, settings) ════════ -->
+    <script>
+    (function () {
+        // ── Cloudinary (signed uploads, done client-side) ──
+        const CLOUD = 'duq37uaxf';
+        const API_KEY = '959326612136268';
+        const API_SECRET = 'cjSXtWmhgZfmH-Khk75bJM8Rl5Y';
+
+        // ── Firebase ──
+        const firebaseConfig = {
+            apiKey: "AIzaSyDqG2yoL9SMlLI6JpDUOOdtIuGkO2iEuhw",
+            authDomain: "juko-dea8f.firebaseapp.com",
+            projectId: "juko-dea8f",
+            storageBucket: "juko-dea8f.firebasestorage.app",
+            messagingSenderId: "671312075063",
+            appId: "1:671312075063:web:674f3836837b709d2ea2b2",
+            measurementId: "G-DRMTETLEDE"
+        };
+
+        let db = null;
+        try {
+            firebase.initializeApp(firebaseConfig);
+            db = firebase.firestore();
+        } catch (e) {
+            console.warn('Firebase init failed — gallery/shared fonts disabled.', e);
+        }
+
+        // ── Cloudinary signed upload helper ──
+        async function sha1Hex(str) {
+            const buf = await crypto.subtle.digest('SHA-1', new TextEncoder().encode(str));
+            return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+        async function cloudinaryUpload(blob, folder, filename) {
+            const ts = Math.round(Date.now() / 1000);
+            const signature = await sha1Hex(`folder=${folder}&timestamp=${ts}${API_SECRET}`);
+            const fd = new FormData();
+            fd.append('file', blob, filename || 'file');
+            fd.append('api_key', API_KEY);
+            fd.append('timestamp', ts);
+            fd.append('folder', folder);
+            fd.append('signature', signature);
+            const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD}/auto/upload`, { method: 'POST', body: fd });
+            const data = await res.json();
+            if (data.secure_url) return data.secure_url;
+            throw new Error((data.error && data.error.message) || 'Cloudinary upload failed');
+        }
+
+        // plain-text preview of the dialogue (tags stripped) for captions
+        function plainText() {
+            return inputEl.value.replace(STRIP_RE, '').replace(/\s+/g, ' ').trim().slice(0, 80);
+        }
+
+        // ───────────────────────── COPY LINK (upload + share) ─────────────────────────
+        const copyLinkBtn = document.getElementById('copyLinkBtn');
+        const shareToggle = document.getElementById('shareToggle');
+        copyLinkBtn.addEventListener('click', async () => {
+            if (!resultImg.src) return;
+            const oldLabel = copyLinkBtn.textContent;
+            copyLinkBtn.disabled = true;
+            copyLinkBtn.textContent = '⏳ Uploading…';
+            setStatus('Uploading GIF…');
+            try {
+                const blob = await (await fetch(resultImg.src)).blob();
+                const url = await cloudinaryUpload(blob, 'juko/gifs', 'juko-' + Date.now() + '.gif');
+                try { await navigator.clipboard.writeText(url); } catch (_) {}
+                setStatus('✅ Link copied! Paste it in Discord/Slack and it plays animated: ' + url);
+
+                if (db && shareToggle.checked) {
+                    try {
+                        await db.collection('gifs').add({
+                            url, text: plainText(),
+                            w: canvas.width, h: canvas.height,
+                            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                        });
+                        loadGallery();
+                    } catch (e) { console.warn('Gallery save failed', e); }
+                }
+            } catch (err) {
+                setStatus('⚠ Upload failed: ' + err.message);
+            } finally {
+                copyLinkBtn.disabled = false;
+                copyLinkBtn.textContent = oldLabel;
+            }
+        });
+
+        // ───────────────────────── PUBLIC GALLERY ─────────────────────────
+        const galleryGrid = document.getElementById('galleryGrid');
+        const galleryEmpty = document.getElementById('galleryEmpty');
+        async function loadGallery() {
+            if (!db) { galleryEmpty.textContent = 'Gallery offline (Firebase unavailable).'; return; }
+            try {
+                const snap = await db.collection('gifs').orderBy('createdAt', 'desc').limit(40).get();
+                galleryGrid.innerHTML = '';
+                if (snap.empty) { galleryEmpty.style.display = 'block'; galleryEmpty.textContent = 'No GIFs yet — be the first! Generate one and hit 📎 Copy Link.'; return; }
+                galleryEmpty.style.display = 'none';
+                snap.forEach(doc => {
+                    const d = doc.data(); if (!d.url) return;
+                    const item = document.createElement('div');
+                    item.className = 'gallery-item';
+                    item.title = 'Click to copy link';
+                    const img = document.createElement('img');
+                    img.loading = 'lazy'; img.src = d.url; img.alt = d.text || 'gif';
+                    const cap = document.createElement('div');
+                    cap.className = 'cap'; cap.textContent = d.text || '(no text)';
+                    item.appendChild(img); item.appendChild(cap);
+                    item.addEventListener('click', async () => {
+                        try { await navigator.clipboard.writeText(d.url); setStatus('✅ Link copied: ' + d.url); }
+                        catch (_) { window.open(d.url, '_blank'); }
+                    });
+                    galleryGrid.appendChild(item);
+                });
+            } catch (e) {
+                console.warn('Gallery load failed', e);
+                galleryEmpty.textContent = 'Could not load gallery.';
+            }
+        }
+        document.getElementById('refreshGallery').addEventListener('click', loadGallery);
+
+        // ───────────────────────── SHARED FONTS (saved forever for everyone) ─────────────────────────
+        // When someone uploads a font, also push it to the cloud so it appears for all future visitors.
+        document.getElementById('fontFile').addEventListener('change', async (ev) => {
+            const file = ev.target.files[0];
+            if (!file || !db) return;
+            const name = (file.name.replace(/\.[^.]+$/, '').replace(/[^a-zA-Z0-9_ -]/g, '').trim()) || 'CustomFont';
+            try {
+                // skip if a font with this name is already shared
+                const existing = await db.collection('fonts').where('name', '==', name).limit(1).get();
+                if (!existing.empty) return;
+                const url = await cloudinaryUpload(file, 'juko/fonts', file.name);
+                await db.collection('fonts').add({
+                    name, url, createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                setStatus('Font "' + name + '" shared — everyone can use it now.');
+            } catch (e) { console.warn('Font share failed', e); }
+        });
+
+        async function loadSharedFonts() {
+            if (!db) return;
+            try {
+                const snap = await db.collection('fonts').orderBy('createdAt', 'desc').limit(60).get();
+                snap.forEach(async doc => {
+                    const d = doc.data(); if (!d.name || !d.url) return;
+                    if ([...fontSelect.options].some(o => o.value === '"' + d.name + '", sans-serif')) return;
+                    try {
+                        const ff = new FontFace(d.name, 'url(' + d.url + ')');
+                        await ff.load();
+                        document.fonts.add(ff);
+                        const opt = document.createElement('option');
+                        opt.value = '"' + d.name + '", sans-serif';
+                        opt.textContent = d.name + ' (shared)';
+                        fontSelect.appendChild(opt);
+                    } catch (e) { /* font failed to load — skip */ }
+                });
+            } catch (e) { console.warn('Shared fonts load failed', e); }
+        }
+
+        // ───────────────────────── SETTINGS PERSISTENCE (localStorage) ─────────────────────────
+        const SETTINGS_KEY = 'juko-settings-v1';
+        const persistIds = ['intensity', 'zalgo', 'animSpeed', 'animAmp', 'rbSpeed', 'rbSpread', 'glow', 'frames', 'fontSize', 'input'];
+        function saveSettings() {
+            const data = {};
+            persistIds.forEach(id => { const el = document.getElementById(id); if (el) data[id] = el.value; });
+            try { localStorage.setItem(SETTINGS_KEY, JSON.stringify(data)); } catch (_) {}
+        }
+        function restoreSettings() {
+            let data; try { data = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}'); } catch (_) { return; }
+            persistIds.forEach(id => {
+                if (data[id] == null) return;
+                const el = document.getElementById(id);
+                if (el) { el.value = data[id]; el.dispatchEvent(new Event('input', { bubbles: true })); }
+            });
+        }
+        persistIds.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) { el.addEventListener('input', saveSettings); el.addEventListener('change', saveSettings); }
+        });
+
+        // ───────────────────────── MATRIX FALLING NUMBERS (non-laggy) ─────────────────────────
+        const mcanvas = document.getElementById('matrix');
+        const mctx = mcanvas.getContext('2d');
+        const FONT_SIZE = 16;
+        let cols = 0, drops = [], glowCol = [];
+        function initMatrix() {
+            mcanvas.width = window.innerWidth;
+            mcanvas.height = window.innerHeight;
+            cols = Math.ceil(mcanvas.width / FONT_SIZE);
+            drops = new Array(cols).fill(0).map(() => Math.floor(Math.random() * (mcanvas.height / FONT_SIZE)));
+            glowCol = new Array(cols).fill(0).map(() => Math.random() < 0.16); // ~16% of columns glow
+        }
+        let lastDraw = 0;
+        function drawMatrix(ts) {
+            requestAnimationFrame(drawMatrix);
+            if (ts - lastDraw < 55) return;   // cap ~18fps → smooth & cheap
+            lastDraw = ts;
+            mctx.fillStyle = 'rgba(5,5,5,0.10)';   // fading trail
+            mctx.fillRect(0, 0, mcanvas.width, mcanvas.height);
+            mctx.font = FONT_SIZE + 'px monospace';
+            for (let i = 0; i < cols; i++) {
+                const ch = String.fromCharCode(48 + ((Math.random() * 10) | 0)); // 0-9
+                const x = i * FONT_SIZE, y = drops[i] * FONT_SIZE;
+                if (glowCol[i]) {
+                    mctx.shadowColor = '#00ff00'; mctx.shadowBlur = 8;
+                    mctx.fillStyle = 'rgba(140,255,140,0.55)';
+                } else {
+                    mctx.shadowBlur = 0; mctx.fillStyle = 'rgba(0,170,0,0.30)';
+                }
+                mctx.fillText(ch, x, y);
+                if (y > mcanvas.height && Math.random() > 0.975) drops[i] = 0;
+                drops[i]++;
+            }
+            mctx.shadowBlur = 0;
+        }
+        let mResizeT;
+        window.addEventListener('resize', () => { clearTimeout(mResizeT); mResizeT = setTimeout(initMatrix, 200); });
+        initMatrix();
+        requestAnimationFrame(drawMatrix);
+
+        // ───────────────────────── BOOT ─────────────────────────
+        restoreSettings();
+        loadSharedFonts();
+        loadGallery();
+    })();
     </script>
 </body>
 
