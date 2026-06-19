@@ -275,6 +275,44 @@
         #cwResult { margin-top:18px; display:none; flex-direction:column; align-items:center; gap:12px; }
         #cwResult img { max-width:100%; border:1px solid #a86a22; border-radius:6px; }
         #cwFontName { color:#ffd277; font-size:0.68rem; }
+
+        /* ── Deep Sea theme (on <body> when DEEP SEA tab active) ── */
+        #tabDeepBtn { border-color:#6d5dfc; color:#b3a8ff; box-shadow:0 0 10px rgba(109,93,252,0.3); }
+        #tabDeepBtn:hover, #tabDeepBtn.on { background:#6d5dfc; color:#0a0420; box-shadow:0 0 18px #6d5dfc; }
+        body.theme-deep { color:#b9aaff; }
+        body.theme-deep h1 { color:#d9d2ff; text-shadow:0 0 16px #6d5dfc, 0 0 34px #1e1147, 0 0 52px #0a3d54; }
+
+        .deep-wrap { width:100%; display:flex; flex-direction:column; align-items:center; }
+        #dsInput {
+            width:100%; max-width:920px; background:rgba(8,4,26,0.88); border:1px solid #5b4bd6; color:#cfc6ff;
+            height:170px; box-sizing:border-box; border-radius:10px; padding:16px;
+            font-family:Georgia,'Times New Roman',serif; font-size:1.1rem; line-height:1.5; resize:none;
+            box-shadow:0 0 18px rgba(91,75,214,0.22);
+        }
+        #dsInput:focus { outline:none; border-color:#8b7bff; box-shadow:0 0 26px rgba(139,123,255,0.4); }
+        #dsInput::placeholder { color:#5b4f9a; }
+        .deep-canvas-wrap {
+            width:100%; max-width:920px; min-height:240px; margin-top:18px;
+            display:flex; align-items:center; justify-content:center;
+            background:radial-gradient(circle at 50% 30%, rgba(40,24,96,0.45), rgba(4,2,16,0.85) 70%);
+            border:1px solid #2c1f6b; border-radius:12px; overflow:hidden; padding:14px; box-sizing:border-box;
+        }
+        #dsOutput { max-width:100%; max-height:440px; object-fit:contain; border-radius:6px; }
+        .deep-panel {
+            margin-top:22px; width:100%; max-width:920px; box-sizing:border-box; padding:16px 20px; border-radius:10px;
+            background:linear-gradient(160deg, rgba(26,16,64,0.86), rgba(8,4,26,0.92));
+            border:1px solid #463aa0; box-shadow:0 0 22px rgba(91,75,214,0.18);
+        }
+        .deep-panel h2 { font-size:0.8rem; letter-spacing:2px; text-transform:uppercase; margin:0 0 14px; color:#b3a8ff; border-bottom:1px solid #2c1f6b; padding-bottom:8px; }
+        .deep-panel input[type="range"] { accent-color:#6d5dfc; }
+        .deep-panel .field { color:#a99cf0; }
+        button.dsbtn { border-color:#6d5dfc; color:#b3a8ff; box-shadow:0 0 10px rgba(109,93,252,0.2); }
+        button.dsbtn:hover { background:#6d5dfc; color:#0a0420; box-shadow:0 0 18px #6d5dfc; }
+        button.dslink { border-color:#22d3ee; color:#67e8f9; }
+        button.dslink:hover { background:#22d3ee; color:#06283d; box-shadow:0 0 16px #22d3ee; }
+        #dsStatus { margin-top:10px; font-size:0.75rem; color:#b3a8ff; min-height:1em; }
+        #dsResult { margin-top:18px; display:none; flex-direction:column; align-items:center; gap:12px; }
+        #dsResult img { max-width:100%; border:1px solid #5b4bd6; border-radius:6px; }
     </style>
 </head>
 
@@ -288,6 +326,7 @@
         <button id="tabMatrixBtn" class="on">◈ MATRIX</button>
         <button id="tabCrystalBtn">◈ CRYSTAL</button>
         <button id="tabClockBtn">◈ CLOCKWORK</button>
+        <button id="tabDeepBtn">◈ DEEP SEA</button>
     </div>
 
     <div id="tab-matrix" class="tab-content active">
@@ -525,6 +564,51 @@ Select text, then use the tools below to style just that part."></textarea>
             </div>
 
             <div id="cwStatus"></div>
+        </div>
+    </div>
+
+    <!-- ════════ DEEP SEA TAB - the purple abyss ════════ -->
+    <div id="tab-deep" class="tab-content">
+        <div class="deep-wrap">
+            <textarea id="dsInput" placeholder="From the lightless deep, let your words glow…"></textarea>
+
+            <div class="deep-canvas-wrap">
+                <canvas id="dsOutput" width="520" height="240"></canvas>
+            </div>
+
+            <div class="deep-panel">
+                <h2>Abyss Tuning</h2>
+                <div class="row">
+                    <label class="field">Hue <input type="range" id="dsHue" min="220" max="300" value="265"></label>
+                    <label class="field">Bioluminescence <input type="range" id="dsBio" min="0" max="40" value="28"></label>
+                    <label class="field">Current <input type="range" id="dsDrift" min="0" max="120" value="40"></label>
+                    <label class="field">Bubbles <input type="range" id="dsBubbles" min="0" max="14" value="8"></label>
+                    <label class="field">Murk <input type="range" id="dsMurk" min="0" max="10" value="6"></label>
+                    <label class="field">Glow <input type="range" id="dsGlow" min="0" max="40" value="20"></label>
+                    <label class="field">Font Size <input type="range" id="dsFontSize" min="14" max="56" value="28"></label>
+                </div>
+                <div class="hint" style="color:#8579c4;">
+                    You're in the lightless void of a purple sea - marine snow drifts down, bioluminescent motes pulse, bubbles rise,
+                    and your words glow from a softly breathing membrane. Crank <strong>Murk</strong> to let the abyss close in.
+                </div>
+            </div>
+
+            <div class="generate-row">
+                <label class="field inline" style="text-transform:uppercase;font-size:0.72rem;color:#a99cf0;">
+                    Frames <input type="range" id="dsFrames" min="8" max="48" value="28" style="width:110px;"> <span class="val" id="dsFramesVal" style="color:#cfc6ff;">28</span>
+                </label>
+                <button id="dsRecordBtn" class="big dsbtn">≈ Generate GIF</button>
+            </div>
+
+            <div id="dsResult">
+                <img id="dsResultImg" alt="deep sea dialogue gif">
+                <div class="result-btns">
+                    <button id="dsCopyLinkBtn" class="dslink" title="Upload &amp; copy a link that auto-plays in Discord/Slack/etc.">📎 Copy Link</button>
+                    <button id="dsDownloadBtn" class="dsbtn">⬇ Download</button>
+                </div>
+            </div>
+
+            <div id="dsStatus"></div>
         </div>
     </div>
 
@@ -1147,6 +1231,12 @@ Select text, then use the tools below to style just that part."></textarea>
         const mcanvas = document.getElementById('matrix');
         const mctx = mcanvas.getContext('2d');
         const FONT_SIZE = 16;
+        const MATRIX_PAL = {
+            green:   { glowS: '#00ff00', glowF: 'rgba(140,255,140,0.55)', dim: 'rgba(0,170,0,0.30)',  glyph: null, glyphChance: 0 },
+            crystal: { glowS: '#c084fc', glowF: 'rgba(216,180,254,0.55)', dim: 'rgba(150,90,210,0.30)', glyph: '✦', glyphChance: 0.12 },
+            clock:   { glowS: '#ffb347', glowF: 'rgba(255,200,120,0.50)', dim: 'rgba(180,120,40,0.28)', glyph: '⚙', glyphChance: 0.10 },
+            deep:    { glowS: '#67e8f9', glowF: 'rgba(150,210,255,0.45)', dim: 'rgba(90,80,190,0.24)',  glyph: '∘', glyphChance: 0.14 }
+        };
         let cols = 0, drops = [], glowCol = [];
         function initMatrix() {
             mcanvas.width = window.innerWidth;
@@ -1161,22 +1251,23 @@ Select text, then use the tools below to style just that part."></textarea>
             if (ts - lastDraw < 55) return;   // cap ~18fps → smooth & cheap
             lastDraw = ts;
             const cls = document.body.classList;
-            const crystal = cls.contains('theme-crystal');
-            const clock = cls.contains('theme-clockwork');
+            const theme = cls.contains('theme-clockwork') ? 'clock'
+                : cls.contains('theme-crystal') ? 'crystal'
+                : cls.contains('theme-deep') ? 'deep' : 'green';
+            const pal = MATRIX_PAL[theme];
             mctx.fillStyle = 'rgba(5,5,5,0.10)';   // fading trail
             mctx.fillRect(0, 0, mcanvas.width, mcanvas.height);
             mctx.font = FONT_SIZE + 'px monospace';
             for (let i = 0; i < cols; i++) {
-                const ch = (clock && Math.random() < 0.10) ? '⚙'
-                    : (crystal && Math.random() < 0.12) ? '✦'
+                const ch = (pal.glyph && Math.random() < pal.glyphChance) ? pal.glyph
                     : String.fromCharCode(48 + ((Math.random() * 10) | 0)); // 0-9
                 const x = i * FONT_SIZE, y = drops[i] * FONT_SIZE;
                 if (glowCol[i]) {
-                    mctx.shadowColor = clock ? '#ffb347' : crystal ? '#c084fc' : '#00ff00'; mctx.shadowBlur = 8;
-                    mctx.fillStyle = clock ? 'rgba(255,200,120,0.5)' : crystal ? 'rgba(216,180,254,0.55)' : 'rgba(140,255,140,0.55)';
+                    mctx.shadowColor = pal.glowS; mctx.shadowBlur = 8;
+                    mctx.fillStyle = pal.glowF;
                 } else {
                     mctx.shadowBlur = 0;
-                    mctx.fillStyle = clock ? 'rgba(180,120,40,0.28)' : crystal ? 'rgba(150,90,210,0.30)' : 'rgba(0,170,0,0.30)';
+                    mctx.fillStyle = pal.dim;
                 }
                 mctx.fillText(ch, x, y);
                 if (y > mcanvas.height && Math.random() > 0.975) drops[i] = 0;
@@ -1235,7 +1326,8 @@ Select text, then use the tools below to style just that part."></textarea>
         const tabs = {
             matrix:    { btn: document.getElementById('tabMatrixBtn'),  panel: document.getElementById('tab-matrix') },
             crystal:   { btn: document.getElementById('tabCrystalBtn'), panel: document.getElementById('tab-crystal') },
-            clockwork: { btn: document.getElementById('tabClockBtn'),   panel: document.getElementById('tab-clockwork') }
+            clockwork: { btn: document.getElementById('tabClockBtn'),   panel: document.getElementById('tab-clockwork') },
+            deep:      { btn: document.getElementById('tabDeepBtn'),    panel: document.getElementById('tab-deep') }
         };
         window.JUKO_TAB = 'matrix';
         function switchTab(name) {
@@ -1247,10 +1339,9 @@ Select text, then use the tools below to style just that part."></textarea>
             }
             document.body.classList.toggle('theme-crystal', name === 'crystal');
             document.body.classList.toggle('theme-clockwork', name === 'clockwork');
+            document.body.classList.toggle('theme-deep', name === 'deep');
         }
-        tabs.matrix.btn.addEventListener('click', () => switchTab('matrix'));
-        tabs.crystal.btn.addEventListener('click', () => switchTab('crystal'));
-        tabs.clockwork.btn.addEventListener('click', () => switchTab('clockwork'));
+        Object.keys(tabs).forEach(k => tabs[k].btn.addEventListener('click', () => switchTab(k)));
     })();
 
     // ── Crystal engine: shimmering purple-cave dialogue box ──
@@ -1789,6 +1880,241 @@ Select text, then use the tools below to style just that part."></textarea>
                 setCW('✅ Link copied! Plays animated when pasted in Discord/Slack: ' + url);
             } catch (err) {
                 setCW('⚠ Upload failed: ' + err.message);
+            } finally {
+                this.disabled = false; this.textContent = old;
+            }
+        });
+
+        setInterval(draw, 1000 / 12);
+    })();
+    </script>
+
+    <!-- ════════ DEEP SEA ENGINE ════════ -->
+    <script>
+    (function () {
+        const dsInput = document.getElementById('dsInput');
+        const canvas = document.getElementById('dsOutput');
+        const ctx = canvas.getContext('2d');
+        const dsHue = document.getElementById('dsHue');
+        const dsBio = document.getElementById('dsBio');
+        const dsDrift = document.getElementById('dsDrift');
+        const dsBubbles = document.getElementById('dsBubbles');
+        const dsMurk = document.getElementById('dsMurk');
+        const dsGlow = document.getElementById('dsGlow');
+        const dsFontSize = document.getElementById('dsFontSize');
+        const dsFrames = document.getElementById('dsFrames');
+        const dsFramesVal = document.getElementById('dsFramesVal');
+        const dsRecordBtn = document.getElementById('dsRecordBtn');
+        const dsResult = document.getElementById('dsResult');
+        const dsResultImg = document.getElementById('dsResultImg');
+        const dsStatus = document.getElementById('dsStatus');
+        const DEEP_FONT = 'Georgia, "Times New Roman", serif';
+        const setDS = (m) => { dsStatus.textContent = m; };
+
+        // fixed particle seeds
+        const snow = Array.from({ length: 70 }, () => ({
+            x: Math.random(), y: Math.random(), sp: 0.15 + Math.random() * 0.5,
+            sz: 0.5 + Math.random() * 1.3, drift: Math.random() * Math.PI * 2
+        }));
+        const motes = Array.from({ length: 40 }, () => ({
+            x: Math.random(), y: Math.random(), ph: Math.random() * Math.PI * 2,
+            sz: 1 + Math.random() * 2.3, sp: 0.4 + Math.random() * 1.1, cx: Math.random() * Math.PI * 2
+        }));
+        const bubbles = Array.from({ length: 14 }, () => ({
+            x: Math.random(), off: Math.random(), sp: 0.05 + Math.random() * 0.12,
+            sz: 1 + Math.random() * 3, wob: Math.random() * Math.PI * 2
+        }));
+
+        function roundRect(x, y, w, h, r) {
+            ctx.beginPath();
+            ctx.moveTo(x + r, y);
+            ctx.arcTo(x + w, y, x + w, y + h, r);
+            ctx.arcTo(x + w, y + h, x, y + h, r);
+            ctx.arcTo(x, y + h, x, y, r);
+            ctx.arcTo(x, y, x + w, y, r);
+            ctx.closePath();
+        }
+        function wrapLines(text, maxW) {
+            const out = [];
+            text.split('\n').forEach(para => {
+                const words = para.split(' ');
+                let cur = '';
+                words.forEach(w => {
+                    const test = cur ? cur + ' ' + w : w;
+                    if (ctx.measureText(test).width > maxW && cur) { out.push(cur); cur = w; }
+                    else cur = test;
+                });
+                out.push(cur);
+            });
+            return out.length ? out : [''];
+        }
+
+        let recording = false, frames = [], maxFrames = 28, lastUrl = null;
+
+        function draw() {
+            if (window.JUKO_TAB !== 'deep' && !recording) return;
+            const t = performance.now() / 1000;
+            const hue = +dsHue.value;
+            const bioN = +dsBio.value | 0;
+            const driftSp = +dsDrift.value / 40;
+            const bubN = +dsBubbles.value | 0;
+            const murk = +dsMurk.value / 10;
+            const glow = +dsGlow.value;
+            const fs = +dsFontSize.value;
+
+            ctx.font = fs + 'px ' + DEEP_FONT;
+            const maxTextW = 560;
+            const raw = dsInput.value;
+            const lines = raw.trim() ? wrapLines(raw, maxTextW) : ['…'];
+            const lineH = Math.round(fs * 1.5);
+            let textW = 0;
+            for (const ln of lines) textW = Math.max(textW, ctx.measureText(ln).width);
+            const padX = 50, padY = 46;
+            const W = Math.max(380, Math.ceil(Math.min(maxTextW, textW) + padX * 2));
+            const H = Math.max(180, lines.length * lineH + padY * 2);
+            if (canvas.width !== W || canvas.height !== H) { canvas.width = W; canvas.height = H; }
+            ctx.font = fs + 'px ' + DEEP_FONT;
+            ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+
+            // ── the void: dark gradient, darkest at the bottom ──
+            const bg = ctx.createLinearGradient(0, 0, 0, H);
+            bg.addColorStop(0, `hsl(${hue},55%,9%)`);
+            bg.addColorStop(0.55, `hsl(${hue - 6},65%,5%)`);
+            bg.addColorStop(1, `hsl(${hue - 12},75%,2%)`);
+            ctx.fillStyle = bg; ctx.fillRect(0, 0, W, H);
+
+            // ── faint light filtering from far above ──
+            ctx.save();
+            ctx.globalCompositeOperation = 'lighter';
+            const gr = ctx.createLinearGradient(0, 0, 0, H * 0.85);
+            gr.addColorStop(0, `hsla(${hue + 20},85%,62%,0.07)`);
+            gr.addColorStop(1, 'hsla(0,0%,0%,0)');
+            ctx.fillStyle = gr; ctx.fillRect(0, 0, W, H * 0.85);
+            ctx.restore();
+
+            // ── marine snow drifting down ──
+            ctx.fillStyle = `hsla(${hue + 20},40%,82%,1)`;
+            for (let i = 0; i < snow.length; i++) {
+                const s = snow[i];
+                const y = ((s.y + t * s.sp * 0.03) % 1) * H;
+                const x = s.x * W + Math.sin(t * 0.3 + s.drift) * 8;
+                ctx.globalAlpha = 0.16;
+                ctx.beginPath(); ctx.arc(x, y, s.sz, 0, Math.PI * 2); ctx.fill();
+            }
+            ctx.globalAlpha = 1;
+
+            // ── bioluminescent motes pulsing in the current ──
+            for (let i = 0; i < bioN && i < motes.length; i++) {
+                const mo = motes[i];
+                const x = (mo.x + Math.sin(t * driftSp * 0.5 + mo.cx) * 0.04) * W;
+                const y = (mo.y + Math.cos(t * driftSp * 0.4 + mo.ph) * 0.04) * H;
+                const al = 0.3 + 0.7 * Math.sin(t * mo.sp * driftSp * 2 + mo.ph);
+                if (al <= 0.05) continue;
+                ctx.save();
+                ctx.globalAlpha = Math.min(1, al);
+                ctx.shadowColor = `hsl(${hue + 45},100%,72%)`; ctx.shadowBlur = glow * 0.7;
+                ctx.fillStyle = `hsl(${hue + 50},100%,82%)`;
+                ctx.beginPath(); ctx.arc(x, y, mo.sz, 0, Math.PI * 2); ctx.fill();
+                ctx.restore();
+            }
+
+            // ── softly breathing membrane dialogue box ──
+            const m = 14, bx = m, by = m, bw = W - 2 * m, bh = H - 2 * m, r = 18;
+            const boxGrad = ctx.createLinearGradient(0, by, 0, by + bh);
+            boxGrad.addColorStop(0, `hsla(${hue},60%,15%,0.42)`);
+            boxGrad.addColorStop(1, `hsla(${hue - 8},70%,6%,0.6)`);
+            roundRect(bx, by, bw, bh, r); ctx.fillStyle = boxGrad; ctx.fill();
+            const pulse = 0.5 + 0.5 * Math.sin(t * 1.2);
+            ctx.shadowColor = `hsl(${hue + 40},100%,66%)`; ctx.shadowBlur = glow * (0.8 + 0.6 * pulse);
+            ctx.lineWidth = 2; ctx.strokeStyle = `hsla(${hue + 30},90%,74%,0.85)`;
+            roundRect(bx, by, bw, bh, r); ctx.stroke();
+            ctx.shadowBlur = 0;
+
+            // ── glowing text swaying in the current ──
+            ctx.fillStyle = `hsl(${hue + 48},90%,84%)`;
+            ctx.shadowColor = `hsl(${hue + 40},100%,70%)`; ctx.shadowBlur = glow * 0.7;
+            const totalH = lines.length * lineH;
+            const y0 = by + bh / 2 - totalH / 2 + lineH / 2;
+            lines.forEach((ln, i) => {
+                const dx = Math.sin(t * driftSp * 0.6 + i * 0.5) * 3;
+                const dy = Math.cos(t * driftSp * 0.4 + i * 0.4) * 1.5;
+                ctx.fillText(ln, W / 2 + dx, y0 + i * lineH + dy);
+            });
+            ctx.shadowBlur = 0;
+
+            // ── bubbles rising ──
+            ctx.strokeStyle = `hsla(${hue + 30},70%,86%,0.5)`; ctx.lineWidth = 1;
+            for (let i = 0; i < bubN && i < bubbles.length; i++) {
+                const b = bubbles[i];
+                const prog = (b.off + t * b.sp) % 1;
+                const y = H - prog * H;
+                const x = b.x * W + Math.sin(prog * Math.PI * 4 + b.wob) * 6;
+                ctx.beginPath(); ctx.arc(x, y, b.sz, 0, Math.PI * 2); ctx.stroke();
+            }
+
+            // ── vignette: the abyss closing in ──
+            const vg = ctx.createRadialGradient(W / 2, H / 2, Math.min(W, H) * 0.22, W / 2, H / 2, Math.max(W, H) * 0.75);
+            vg.addColorStop(0, 'hsla(0,0%,0%,0)');
+            vg.addColorStop(1, `hsla(${hue - 10},80%,2%,${0.5 + 0.45 * murk})`);
+            ctx.fillStyle = vg; ctx.fillRect(0, 0, W, H);
+
+            if (recording && frames.length < maxFrames) {
+                frames.push(canvas.toDataURL('image/png'));
+                if (frames.length === maxFrames) { recording = false; compile(); }
+            }
+        }
+
+        function compile() {
+            dsRecordBtn.textContent = 'Compiling…';
+            setDS('Compiling ' + frames.length + ' frames…');
+            gifshot.createGIF({
+                images: frames, gifWidth: canvas.width, gifHeight: canvas.height,
+                interval: 0.07, numWorkers: 2, sampleInterval: 1
+            }, function (obj) {
+                if (!obj.error) {
+                    if (lastUrl) URL.revokeObjectURL(lastUrl);
+                    lastUrl = obj.image;
+                    dsResultImg.src = obj.image;
+                    dsResult.style.display = 'flex';
+                    setDS('Done! Copy or download below.');
+                } else {
+                    setDS('GIF failed: ' + (obj.errorMsg || 'try shorter text.'));
+                }
+                dsRecordBtn.textContent = '≈ Generate GIF';
+                dsRecordBtn.disabled = false;
+                frames = [];
+            });
+        }
+
+        dsRecordBtn.addEventListener('click', () => {
+            if (!dsInput.value.trim()) { setDS('Type some dialogue first!'); return; }
+            maxFrames = parseInt(dsFrames.value);
+            recording = true; frames = [];
+            dsRecordBtn.disabled = true; dsRecordBtn.textContent = 'Recording…';
+            setDS('Recording ' + maxFrames + ' frames…');
+        });
+        dsFrames.addEventListener('input', () => dsFramesVal.textContent = dsFrames.value);
+
+        document.getElementById('dsDownloadBtn').addEventListener('click', () => {
+            if (!dsResultImg.src) return;
+            const a = document.createElement('a');
+            a.download = 'deep-sea-dialogue.gif'; a.href = dsResultImg.src; a.click();
+        });
+
+        document.getElementById('dsCopyLinkBtn').addEventListener('click', async function () {
+            if (!dsResultImg.src) return;
+            const old = this.textContent;
+            this.disabled = true; this.textContent = '⏳ Uploading…';
+            setDS('Uploading GIF…');
+            try {
+                if (!window.jukoCloud || !window.jukoCloud.shareGif) throw new Error('cloud pipeline unavailable');
+                const blob = await (await fetch(dsResultImg.src)).blob();
+                const text = (dsInput.value || '').replace(/\s+/g, ' ').trim().slice(0, 80);
+                const url = await window.jukoCloud.shareGif(blob, text, canvas.width, canvas.height);
+                try { await navigator.clipboard.writeText(url); } catch (_) {}
+                setDS('✅ Link copied! Plays animated when pasted in Discord/Slack: ' + url);
+            } catch (err) {
+                setDS('⚠ Upload failed: ' + err.message);
             } finally {
                 this.disabled = false; this.textContent = old;
             }
