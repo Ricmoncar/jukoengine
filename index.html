@@ -236,6 +236,45 @@
         #cStatus { margin-top:10px; font-size:0.75rem; color:#d8b4fe; min-height:1em; }
         #cResult { margin-top:18px; display:none; flex-direction:column; align-items:center; gap:12px; }
         #cResult img { max-width:100%; border:1px solid #7c3aed; border-radius:6px; }
+
+        /* ── Clockwork theme (on <body> when CLOCKWORK tab active) ── */
+        #tabClockBtn { border-color:#d99a3a; color:#f0c674; box-shadow:0 0 10px rgba(217,154,58,0.25); }
+        #tabClockBtn:hover, #tabClockBtn.on { background:#d99a3a; color:#1a1206; box-shadow:0 0 18px #d99a3a; }
+        body.theme-clockwork { color:#f0c674; }
+        body.theme-clockwork h1 { color:#ffe1a8; text-shadow:0 0 16px #d99a3a, 0 0 32px #7a4a12; }
+
+        .clock-wrap { width:100%; display:flex; flex-direction:column; align-items:center; }
+        #cwInput {
+            width:100%; max-width:920px; background:rgba(22,14,4,0.85); border:1px solid #a86a22; color:#f0c674;
+            height:170px; box-sizing:border-box; border-radius:10px; padding:16px;
+            font-family:Georgia,'Times New Roman',serif; font-size:1.1rem; line-height:1.5; resize:none;
+            box-shadow:0 0 18px rgba(168,106,34,0.2);
+        }
+        #cwInput:focus { outline:none; border-color:#e0a94a; box-shadow:0 0 26px rgba(224,169,74,0.4); }
+        #cwInput::placeholder { color:#9a7430; }
+        .clock-canvas-wrap {
+            width:100%; max-width:920px; min-height:240px; margin-top:18px;
+            display:flex; align-items:center; justify-content:center;
+            background:radial-gradient(circle at 50% 42%, rgba(70,44,12,0.5), rgba(14,8,3,0.75));
+            border:1px solid #6b4416; border-radius:12px; overflow:hidden; padding:14px; box-sizing:border-box;
+        }
+        #cwOutput { max-width:100%; max-height:440px; object-fit:contain; border-radius:6px; }
+        .clock-panel {
+            margin-top:22px; width:100%; max-width:920px; box-sizing:border-box; padding:16px 20px; border-radius:10px;
+            background:linear-gradient(160deg, rgba(60,38,12,0.84), rgba(26,16,5,0.92));
+            border:1px solid #8a5a1e; box-shadow:0 0 22px rgba(168,106,34,0.18);
+        }
+        .clock-panel h2 { font-size:0.8rem; letter-spacing:2px; text-transform:uppercase; margin:0 0 14px; color:#f0c674; border-bottom:1px solid #6b4416; padding-bottom:8px; }
+        .clock-panel input[type="range"] { accent-color:#d99a3a; }
+        .clock-panel .field { color:#e0b873; }
+        button.cwbtn { border-color:#d99a3a; color:#f0c674; box-shadow:0 0 10px rgba(217,154,58,0.2); }
+        button.cwbtn:hover { background:#d99a3a; color:#1a1206; box-shadow:0 0 18px #d99a3a; }
+        button.cwlink { border-color:#e8b34a; color:#ffd277; }
+        button.cwlink:hover { background:#e8b34a; color:#2a1a06; box-shadow:0 0 16px #e8b34a; }
+        #cwStatus { margin-top:10px; font-size:0.75rem; color:#f0c674; min-height:1em; }
+        #cwResult { margin-top:18px; display:none; flex-direction:column; align-items:center; gap:12px; }
+        #cwResult img { max-width:100%; border:1px solid #a86a22; border-radius:6px; }
+        #cwFontName { color:#ffd277; font-size:0.68rem; }
     </style>
 </head>
 
@@ -248,6 +287,7 @@
     <div class="tabbar">
         <button id="tabMatrixBtn" class="on">◈ MATRIX</button>
         <button id="tabCrystalBtn">◈ CRYSTAL</button>
+        <button id="tabClockBtn">◈ CLOCKWORK</button>
     </div>
 
     <div id="tab-matrix" class="tab-content active">
@@ -436,6 +476,58 @@ Select text, then use the tools below to style just that part."></textarea>
         </div>
     </div>
 
+    <!-- ════════ CLOCKWORK TAB - mysterious brass clocks &amp; gears ════════ -->
+    <div id="tab-clockwork" class="tab-content">
+        <div class="clock-wrap">
+            <textarea id="cwInput" placeholder="Wind the gears and let time speak your words…"></textarea>
+
+            <div class="clock-canvas-wrap">
+                <canvas id="cwOutput" width="520" height="240"></canvas>
+            </div>
+
+            <div class="clock-panel">
+                <h2>Clockwork Tuning</h2>
+                <div class="row">
+                    <label class="field">Brass Tone <input type="range" id="cwTone" min="20" max="55" value="40"></label>
+                    <label class="field">Gear Speed <input type="range" id="cwGearSpeed" min="0" max="120" value="40"></label>
+                    <label class="field">Gears <input type="range" id="cwGears" min="0" max="10" value="6"></label>
+                    <label class="field">Clock Hands <input type="range" id="cwHandSpeed" min="0" max="120" value="32"></label>
+                    <label class="field">Tick <input type="range" id="cwTick" min="0" max="6" value="2"></label>
+                    <label class="field">Glow <input type="range" id="cwGlow" min="0" max="40" value="16"></label>
+                    <label class="field">Font Size <input type="range" id="cwFontSize" min="14" max="56" value="28"></label>
+                </div>
+                <div class="row" style="margin-top:12px;">
+                    <div class="field inline" style="color:#e0b873;">
+                        Upload font
+                        <input type="file" id="cwFontFile" accept=".ttf,.otf,.woff,.woff2,font/*" style="font-size:0.7rem;max-width:190px;">
+                        <span id="cwFontName">Font: Georgia (default)</span>
+                    </div>
+                </div>
+                <div class="hint" style="color:#bb965a;">
+                    Mysterious brass clockwork - rotating gears, a ghostly clock face with sweeping hands, and engraved text that ticks.
+                    <strong>Upload your own font</strong> above and it's used instantly (and saved to the shared library for everyone).
+                </div>
+            </div>
+
+            <div class="generate-row">
+                <label class="field inline" style="text-transform:uppercase;font-size:0.72rem;color:#e0b873;">
+                    Frames <input type="range" id="cwFrames" min="8" max="48" value="28" style="width:110px;"> <span class="val" id="cwFramesVal" style="color:#ffd277;">28</span>
+                </label>
+                <button id="cwRecordBtn" class="big cwbtn">⚙ Generate GIF</button>
+            </div>
+
+            <div id="cwResult">
+                <img id="cwResultImg" alt="clockwork dialogue gif">
+                <div class="result-btns">
+                    <button id="cwCopyLinkBtn" class="cwlink" title="Upload &amp; copy a link that auto-plays in Discord/Slack/etc.">📎 Copy Link</button>
+                    <button id="cwDownloadBtn" class="cwbtn">⬇ Download</button>
+                </div>
+            </div>
+
+            <div id="cwStatus"></div>
+        </div>
+    </div>
+
     <!-- ── PUBLIC GALLERY ── -->
     <div class="panel">
         <div class="gallery-head">
@@ -607,7 +699,7 @@ Select text, then use the tools below to style just that part."></textarea>
         }
 
         function generateFrame() {
-            if (window.JUKO_TAB === 'crystal' && !isRecording) return;   // idle while crystal tab is up
+            if (window.JUKO_TAB && window.JUKO_TAB !== 'matrix' && !isRecording) return;   // idle on other tabs
             const raw = inputEl.value;
             const intensity = parseInt(intensityEl.value);
             const zalgoLevel = parseInt(zalgoEl.value);
@@ -1068,21 +1160,23 @@ Select text, then use the tools below to style just that part."></textarea>
             requestAnimationFrame(drawMatrix);
             if (ts - lastDraw < 55) return;   // cap ~18fps → smooth & cheap
             lastDraw = ts;
-            const crystal = document.body.classList.contains('theme-crystal');
+            const cls = document.body.classList;
+            const crystal = cls.contains('theme-crystal');
+            const clock = cls.contains('theme-clockwork');
             mctx.fillStyle = 'rgba(5,5,5,0.10)';   // fading trail
             mctx.fillRect(0, 0, mcanvas.width, mcanvas.height);
             mctx.font = FONT_SIZE + 'px monospace';
             for (let i = 0; i < cols; i++) {
-                const ch = (crystal && Math.random() < 0.12)
-                    ? '✦'
+                const ch = (clock && Math.random() < 0.10) ? '⚙'
+                    : (crystal && Math.random() < 0.12) ? '✦'
                     : String.fromCharCode(48 + ((Math.random() * 10) | 0)); // 0-9
                 const x = i * FONT_SIZE, y = drops[i] * FONT_SIZE;
                 if (glowCol[i]) {
-                    mctx.shadowColor = crystal ? '#c084fc' : '#00ff00'; mctx.shadowBlur = 8;
-                    mctx.fillStyle = crystal ? 'rgba(216,180,254,0.55)' : 'rgba(140,255,140,0.55)';
+                    mctx.shadowColor = clock ? '#ffb347' : crystal ? '#c084fc' : '#00ff00'; mctx.shadowBlur = 8;
+                    mctx.fillStyle = clock ? 'rgba(255,200,120,0.5)' : crystal ? 'rgba(216,180,254,0.55)' : 'rgba(140,255,140,0.55)';
                 } else {
                     mctx.shadowBlur = 0;
-                    mctx.fillStyle = crystal ? 'rgba(150,90,210,0.30)' : 'rgba(0,170,0,0.30)';
+                    mctx.fillStyle = clock ? 'rgba(180,120,40,0.28)' : crystal ? 'rgba(150,90,210,0.30)' : 'rgba(0,170,0,0.30)';
                 }
                 mctx.fillText(ch, x, y);
                 if (y > mcanvas.height && Math.random() > 0.975) drops[i] = 0;
@@ -1112,6 +1206,18 @@ Select text, then use the tools below to style just that part."></textarea>
                     } catch (e) { console.warn('Gallery save failed', e); }
                 }
                 return url;
+            },
+            // share an uploaded font file so it's saved forever for everyone
+            async shareFont(file, name) {
+                if (!db) return;
+                try {
+                    const existing = await db.collection('fonts').where('name', '==', name).limit(1).get();
+                    if (!existing.empty) return;
+                    const url = await cloudinaryUpload(file, 'juko/fonts', file.name);
+                    await db.collection('fonts').add({
+                        name, url, createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                } catch (e) { console.warn('shareFont failed', e); }
             }
         };
 
@@ -1127,8 +1233,9 @@ Select text, then use the tools below to style just that part."></textarea>
     // ── Tab switching ──
     (function () {
         const tabs = {
-            matrix:  { btn: document.getElementById('tabMatrixBtn'),  panel: document.getElementById('tab-matrix') },
-            crystal: { btn: document.getElementById('tabCrystalBtn'), panel: document.getElementById('tab-crystal') }
+            matrix:    { btn: document.getElementById('tabMatrixBtn'),  panel: document.getElementById('tab-matrix') },
+            crystal:   { btn: document.getElementById('tabCrystalBtn'), panel: document.getElementById('tab-crystal') },
+            clockwork: { btn: document.getElementById('tabClockBtn'),   panel: document.getElementById('tab-clockwork') }
         };
         window.JUKO_TAB = 'matrix';
         function switchTab(name) {
@@ -1139,9 +1246,11 @@ Select text, then use the tools below to style just that part."></textarea>
                 tabs[k].btn.classList.toggle('on', on);
             }
             document.body.classList.toggle('theme-crystal', name === 'crystal');
+            document.body.classList.toggle('theme-clockwork', name === 'clockwork');
         }
         tabs.matrix.btn.addEventListener('click', () => switchTab('matrix'));
         tabs.crystal.btn.addEventListener('click', () => switchTab('crystal'));
+        tabs.clockwork.btn.addEventListener('click', () => switchTab('clockwork'));
     })();
 
     // ── Crystal engine: shimmering purple-cave dialogue box ──
@@ -1385,6 +1494,301 @@ Select text, then use the tools below to style just that part."></textarea>
                 setC('✅ Link copied! Plays animated when pasted in Discord/Slack: ' + url);
             } catch (err) {
                 setC('⚠ Upload failed: ' + err.message);
+            } finally {
+                this.disabled = false; this.textContent = old;
+            }
+        });
+
+        setInterval(draw, 1000 / 12);
+    })();
+    </script>
+
+    <!-- ════════ CLOCKWORK ENGINE ════════ -->
+    <script>
+    (function () {
+        const cwInput = document.getElementById('cwInput');
+        const canvas = document.getElementById('cwOutput');
+        const ctx = canvas.getContext('2d');
+        const cwTone = document.getElementById('cwTone');
+        const cwGearSpeed = document.getElementById('cwGearSpeed');
+        const cwGears = document.getElementById('cwGears');
+        const cwHandSpeed = document.getElementById('cwHandSpeed');
+        const cwTick = document.getElementById('cwTick');
+        const cwGlow = document.getElementById('cwGlow');
+        const cwFontSize = document.getElementById('cwFontSize');
+        const cwFrames = document.getElementById('cwFrames');
+        const cwFramesVal = document.getElementById('cwFramesVal');
+        const cwRecordBtn = document.getElementById('cwRecordBtn');
+        const cwResult = document.getElementById('cwResult');
+        const cwResultImg = document.getElementById('cwResultImg');
+        const cwStatus = document.getElementById('cwStatus');
+        const cwFontFile = document.getElementById('cwFontFile');
+        const cwFontName = document.getElementById('cwFontName');
+        const setCW = (m) => { cwStatus.textContent = m; };
+
+        let currentFont = 'Georgia, "Times New Roman", serif';
+
+        // fixed gear seeds (position %, radius %, teeth, direction, glow?)
+        const gearSeeds = Array.from({ length: 10 }, (_, i) => ({
+            x: Math.random(), y: Math.random(),
+            R: 18 + Math.random() * 40, teeth: 8 + ((Math.random() * 8) | 0),
+            dir: Math.random() < 0.5 ? 1 : -1, glow: Math.random() < 0.25,
+            sp: 0.4 + Math.random() * 1.4
+        }));
+
+        function roundRect(x, y, w, h, r) {
+            ctx.beginPath();
+            ctx.moveTo(x + r, y);
+            ctx.arcTo(x + w, y, x + w, y + h, r);
+            ctx.arcTo(x + w, y + h, x, y + h, r);
+            ctx.arcTo(x, y + h, x, y, r);
+            ctx.arcTo(x, y, x + w, y, r);
+            ctx.closePath();
+        }
+        function wrapLines(text, maxW) {
+            const out = [];
+            text.split('\n').forEach(para => {
+                const words = para.split(' ');
+                let cur = '';
+                words.forEach(w => {
+                    const test = cur ? cur + ' ' + w : w;
+                    if (ctx.measureText(test).width > maxW && cur) { out.push(cur); cur = w; }
+                    else cur = test;
+                });
+                out.push(cur);
+            });
+            return out.length ? out : [''];
+        }
+        function drawGear(cx, cy, R, teeth, rot, hue, alpha, glow) {
+            const inner = R * 0.74, hub = R * 0.32;
+            ctx.save();
+            ctx.translate(cx, cy); ctx.rotate(rot);
+            ctx.globalAlpha = alpha;
+            ctx.lineWidth = 2;
+            ctx.strokeStyle = `hsl(${hue},70%,55%)`;
+            ctx.fillStyle = `hsla(${hue},60%,30%,0.5)`;
+            if (glow) { ctx.shadowColor = `hsl(${hue},90%,60%)`; ctx.shadowBlur = glow; }
+            const step = (Math.PI * 2) / teeth;
+            ctx.beginPath();
+            for (let i = 0; i < teeth; i++) {
+                const a = i * step;
+                ctx.lineTo(Math.cos(a) * inner, Math.sin(a) * inner);
+                ctx.lineTo(Math.cos(a + step * 0.14) * R, Math.sin(a + step * 0.14) * R);
+                ctx.lineTo(Math.cos(a + step * 0.36) * R, Math.sin(a + step * 0.36) * R);
+                ctx.lineTo(Math.cos(a + step * 0.5) * inner, Math.sin(a + step * 0.5) * inner);
+            }
+            ctx.closePath();
+            ctx.fill(); ctx.stroke();
+            ctx.shadowBlur = 0;
+            // hub + center hole + spokes
+            ctx.beginPath(); ctx.arc(0, 0, hub, 0, Math.PI * 2); ctx.stroke();
+            ctx.beginPath(); ctx.arc(0, 0, hub * 0.35, 0, Math.PI * 2); ctx.stroke();
+            for (let s = 0; s < 5; s++) {
+                const a = (s / 5) * Math.PI * 2;
+                ctx.beginPath();
+                ctx.moveTo(Math.cos(a) * hub, Math.sin(a) * hub);
+                ctx.lineTo(Math.cos(a) * inner, Math.sin(a) * inner);
+                ctx.stroke();
+            }
+            ctx.restore();
+        }
+        function drawClock(cx, cy, R, t, handSpeed, hue, alpha) {
+            ctx.save();
+            ctx.globalAlpha = alpha;
+            ctx.strokeStyle = `hsl(${hue},60%,55%)`;
+            ctx.lineWidth = 2;
+            ctx.beginPath(); ctx.arc(cx, cy, R, 0, Math.PI * 2); ctx.stroke();
+            ctx.beginPath(); ctx.arc(cx, cy, R * 0.9, 0, Math.PI * 2); ctx.stroke();
+            ctx.lineWidth = 1.2;
+            for (let i = 0; i < 60; i++) {
+                const a = (i / 60) * Math.PI * 2;
+                const r1 = R * 0.9, r2 = (i % 5 === 0) ? R * 0.79 : R * 0.85;
+                ctx.beginPath();
+                ctx.moveTo(cx + Math.cos(a) * r1, cy + Math.sin(a) * r1);
+                ctx.lineTo(cx + Math.cos(a) * r2, cy + Math.sin(a) * r2);
+                ctx.stroke();
+            }
+            ctx.fillStyle = `hsl(${hue},55%,60%)`;
+            ctx.font = Math.round(R * 0.15) + 'px Georgia, serif';
+            ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+            const rn = ['XII', 'I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI'];
+            for (let i = 0; i < 12; i++) {
+                const a = (i / 12) * Math.PI * 2 - Math.PI / 2;
+                ctx.fillText(rn[i], cx + Math.cos(a) * R * 0.69, cy + Math.sin(a) * R * 0.69);
+            }
+            const base = t * handSpeed * 0.1;
+            const hand = (ang, len, w, col) => {
+                ctx.strokeStyle = col; ctx.lineWidth = w; ctx.beginPath();
+                ctx.moveTo(cx, cy);
+                ctx.lineTo(cx + Math.cos(ang - Math.PI / 2) * len, cy + Math.sin(ang - Math.PI / 2) * len);
+                ctx.stroke();
+            };
+            hand(base * 0.5, R * 0.45, 4, `hsl(${hue},65%,58%)`);
+            hand(base * 1.3, R * 0.66, 3, `hsl(${hue},75%,64%)`);
+            hand(base * 3.0, R * 0.8, 1.5, `hsl(${hue + 12},90%,70%)`);
+            ctx.beginPath(); ctx.arc(cx, cy, 4, 0, Math.PI * 2);
+            ctx.fillStyle = `hsl(${hue + 12},90%,70%)`; ctx.fill();
+            ctx.restore();
+        }
+
+        let recording = false, frames = [], maxFrames = 28, lastUrl = null;
+
+        function draw() {
+            if (window.JUKO_TAB !== 'clockwork' && !recording) return;
+            const t = performance.now() / 1000;
+            const hue = +cwTone.value;
+            const gearSp = +cwGearSpeed.value / 40;
+            const gearN = +cwGears.value | 0;
+            const handSp = +cwHandSpeed.value;
+            const tickAmt = +cwTick.value;
+            const glow = +cwGlow.value;
+            const fs = +cwFontSize.value;
+
+            ctx.font = fs + 'px ' + currentFont;
+            const maxTextW = 560;
+            const raw = cwInput.value;
+            const lines = raw.trim() ? wrapLines(raw, maxTextW) : ['…'];
+            const lineH = Math.round(fs * 1.5);
+            let textW = 0;
+            for (const ln of lines) textW = Math.max(textW, ctx.measureText(ln).width);
+            const padX = 54, padY = 46;
+            const W = Math.max(380, Math.ceil(Math.min(maxTextW, textW) + padX * 2));
+            const H = Math.max(180, lines.length * lineH + padY * 2);
+            if (canvas.width !== W || canvas.height !== H) { canvas.width = W; canvas.height = H; }
+            ctx.font = fs + 'px ' + currentFont;
+            ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+
+            // ── warm cave-dark background + vignette ──
+            const bg = ctx.createLinearGradient(0, 0, 0, H);
+            bg.addColorStop(0, `hsl(${hue - 8},45%,9%)`);
+            bg.addColorStop(1, `hsl(${hue - 4},50%,4%)`);
+            ctx.fillStyle = bg; ctx.fillRect(0, 0, W, H);
+
+            // ── rotating gears (ambient, behind) ──
+            for (let i = 0; i < gearN && i < gearSeeds.length; i++) {
+                const g = gearSeeds[i];
+                const gx = g.x * (W + 80) - 40, gy = g.y * (H + 80) - 40;
+                drawGear(gx, gy, g.R, g.teeth, t * gearSp * g.sp * g.dir, hue, 0.22, g.glow ? glow * 0.5 : 0);
+            }
+
+            // ── ghostly clock face behind the text ──
+            drawClock(W / 2, H / 2, Math.min(W, H) * 0.46, t, handSp, hue, 0.2);
+
+            // ── brass plaque dialogue box ──
+            const m = 14, bx = m, by = m, bw = W - 2 * m, bh = H - 2 * m, r = 12;
+            const boxGrad = ctx.createLinearGradient(0, by, 0, by + bh);
+            boxGrad.addColorStop(0, `hsla(${hue},55%,22%,0.62)`);
+            boxGrad.addColorStop(1, `hsla(${hue - 6},60%,8%,0.72)`);
+            roundRect(bx, by, bw, bh, r); ctx.fillStyle = boxGrad; ctx.fill();
+            // engraved double border
+            ctx.shadowColor = `hsl(${hue},90%,55%)`; ctx.shadowBlur = glow * (0.6 + 0.4 * (0.5 + 0.5 * Math.sin(t * 1.5)));
+            ctx.lineWidth = 2.5; ctx.strokeStyle = `hsl(${hue},75%,58%)`;
+            roundRect(bx, by, bw, bh, r); ctx.stroke();
+            ctx.shadowBlur = 0;
+            ctx.lineWidth = 1; ctx.strokeStyle = `hsla(${hue},65%,45%,0.7)`;
+            roundRect(bx + 6, by + 6, bw - 12, bh - 12, r * 0.6); ctx.stroke();
+            // corner rivets
+            ctx.fillStyle = `hsl(${hue + 8},80%,62%)`;
+            [[bx + 12, by + 12], [bx + bw - 12, by + 12], [bx + 12, by + bh - 12], [bx + bw - 12, by + bh - 12]].forEach(p => {
+                ctx.beginPath(); ctx.arc(p[0], p[1], 3, 0, Math.PI * 2); ctx.fill();
+            });
+
+            // ── engraved text with a clock "tick" nudge ──
+            const tickPhase = Math.floor(t * (tickAmt > 0 ? 2 : 0));
+            const jr = (Math.sin(tickPhase * 12.9898) * 43758.5453) % 1;
+            const jx = tickAmt ? (jr - 0.5) * tickAmt * 0.6 : 0;
+            const jy = tickAmt ? ((Math.sin(tickPhase * 78.233) * 43758.5453 % 1) - 0.5) * tickAmt * 0.6 : 0;
+            const totalH = lines.length * lineH;
+            const y0 = by + bh / 2 - totalH / 2 + lineH / 2;
+            ctx.font = fs + 'px ' + currentFont;
+            lines.forEach((ln, i) => {
+                const yy = y0 + i * lineH + jy;
+                ctx.fillStyle = 'rgba(0,0,0,0.55)';                 // deboss shadow
+                ctx.fillText(ln, W / 2 + jx + 1, yy + 1);
+                ctx.shadowColor = `hsl(${hue},90%,55%)`; ctx.shadowBlur = glow * 0.5;
+                ctx.fillStyle = `hsl(${hue},78%,66%)`;             // brass face
+                ctx.fillText(ln, W / 2 + jx, yy);
+                ctx.shadowBlur = 0;
+            });
+
+            // ── two glowing foreground gears at opposite corners ──
+            drawGear(bx + 6, by + bh - 6, 16, 9, t * gearSp * 1.2, hue, 0.5, glow * 0.6);
+            drawGear(bx + bw - 6, by + 6, 13, 8, -t * gearSp * 1.6, hue, 0.5, glow * 0.6);
+
+            if (recording && frames.length < maxFrames) {
+                frames.push(canvas.toDataURL('image/png'));
+                if (frames.length === maxFrames) { recording = false; compile(); }
+            }
+        }
+
+        function compile() {
+            cwRecordBtn.textContent = 'Compiling…';
+            setCW('Compiling ' + frames.length + ' frames…');
+            gifshot.createGIF({
+                images: frames, gifWidth: canvas.width, gifHeight: canvas.height,
+                interval: 0.07, numWorkers: 2, sampleInterval: 1
+            }, function (obj) {
+                if (!obj.error) {
+                    if (lastUrl) URL.revokeObjectURL(lastUrl);
+                    lastUrl = obj.image;
+                    cwResultImg.src = obj.image;
+                    cwResult.style.display = 'flex';
+                    setCW('Done! Copy or download below.');
+                } else {
+                    setCW('GIF failed: ' + (obj.errorMsg || 'try shorter text.'));
+                }
+                cwRecordBtn.textContent = '⚙ Generate GIF';
+                cwRecordBtn.disabled = false;
+                frames = [];
+            });
+        }
+
+        cwRecordBtn.addEventListener('click', () => {
+            if (!cwInput.value.trim()) { setCW('Type some dialogue first!'); return; }
+            maxFrames = parseInt(cwFrames.value);
+            recording = true; frames = [];
+            cwRecordBtn.disabled = true; cwRecordBtn.textContent = 'Recording…';
+            setCW('Recording ' + maxFrames + ' frames…');
+        });
+        cwFrames.addEventListener('input', () => cwFramesVal.textContent = cwFrames.value);
+
+        // ── upload your own font (used instantly + shared forever) ──
+        cwFontFile.addEventListener('change', async (ev) => {
+            const file = ev.target.files[0]; if (!file) return;
+            const name = (file.name.replace(/\.[^.]+$/, '').replace(/[^a-zA-Z0-9_ -]/g, '').trim()) || 'ClockFont';
+            setCW('Loading "' + name + '"…');
+            try {
+                const buf = await file.arrayBuffer();
+                const ff = new FontFace(name, buf);
+                await ff.load();
+                document.fonts.add(ff);
+                currentFont = '"' + name + '", Georgia, serif';
+                cwFontName.textContent = 'Font: ' + name;
+                setCW('Loaded "' + name + '" - now engraving with it.');
+                if (window.jukoCloud && window.jukoCloud.shareFont) window.jukoCloud.shareFont(file, name);
+            } catch (e) { setCW('Failed to load that font file.'); }
+        });
+
+        document.getElementById('cwDownloadBtn').addEventListener('click', () => {
+            if (!cwResultImg.src) return;
+            const a = document.createElement('a');
+            a.download = 'clockwork-dialogue.gif'; a.href = cwResultImg.src; a.click();
+        });
+
+        document.getElementById('cwCopyLinkBtn').addEventListener('click', async function () {
+            if (!cwResultImg.src) return;
+            const old = this.textContent;
+            this.disabled = true; this.textContent = '⏳ Uploading…';
+            setCW('Uploading GIF…');
+            try {
+                if (!window.jukoCloud || !window.jukoCloud.shareGif) throw new Error('cloud pipeline unavailable');
+                const blob = await (await fetch(cwResultImg.src)).blob();
+                const text = (cwInput.value || '').replace(/\s+/g, ' ').trim().slice(0, 80);
+                const url = await window.jukoCloud.shareGif(blob, text, canvas.width, canvas.height);
+                try { await navigator.clipboard.writeText(url); } catch (_) {}
+                setCW('✅ Link copied! Plays animated when pasted in Discord/Slack: ' + url);
+            } catch (err) {
+                setCW('⚠ Upload failed: ' + err.message);
             } finally {
                 this.disabled = false; this.textContent = old;
             }
