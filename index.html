@@ -313,6 +313,44 @@
         #dsStatus { margin-top:10px; font-size:0.75rem; color:#b3a8ff; min-height:1em; }
         #dsResult { margin-top:18px; display:none; flex-direction:column; align-items:center; gap:12px; }
         #dsResult img { max-width:100%; border:1px solid #5b4bd6; border-radius:6px; }
+
+        /* ── Ice Ouji theme (on <body> when ICE OUJI tab active) ── */
+        #tabIceBtn { border-color:#7dd3fc; color:#bae6fd; box-shadow:0 0 10px rgba(125,211,252,0.3); }
+        #tabIceBtn:hover, #tabIceBtn.on { background:#7dd3fc; color:#0a1a2e; box-shadow:0 0 18px #7dd3fc; }
+        body.theme-ice { color:#dbeafe; }
+        body.theme-ice h1 { color:#f0f9ff; text-shadow:0 0 16px #7dd3fc, 0 0 32px #1e40af, 0 0 6px #e8c06a; }
+
+        .ice-wrap { width:100%; display:flex; flex-direction:column; align-items:center; }
+        #ioInput {
+            width:100%; max-width:920px; background:rgba(8,18,38,0.86); border:1px solid #3b82c4; color:#e0f2fe;
+            height:170px; box-sizing:border-box; border-radius:10px; padding:16px;
+            font-family:Georgia,'Times New Roman',serif; font-size:1.1rem; line-height:1.5; resize:none;
+            box-shadow:0 0 18px rgba(125,211,252,0.2);
+        }
+        #ioInput:focus { outline:none; border-color:#bae6fd; box-shadow:0 0 26px rgba(186,230,253,0.4); }
+        .ice-canvas-wrap {
+            width:100%; max-width:920px; min-height:240px; margin-top:18px;
+            display:flex; align-items:center; justify-content:center;
+            background:radial-gradient(circle at 50% 32%, rgba(40,78,140,0.45), rgba(6,14,32,0.85) 72%);
+            border:1px solid #234a7a; border-radius:12px; overflow:hidden; padding:14px; box-sizing:border-box;
+        }
+        #ioOutput { max-width:100%; max-height:440px; object-fit:contain; border-radius:6px; }
+        .ice-panel {
+            margin-top:22px; width:100%; max-width:920px; box-sizing:border-box; padding:16px 20px; border-radius:10px;
+            background:linear-gradient(160deg, rgba(18,38,72,0.86), rgba(6,16,34,0.92));
+            border:1px solid #2f5f9e; box-shadow:0 0 22px rgba(125,211,252,0.16);
+        }
+        .ice-panel h2 { font-size:0.8rem; letter-spacing:2px; text-transform:uppercase; margin:0 0 14px; color:#bae6fd; border-bottom:1px solid #234a7a; padding-bottom:8px; }
+        .ice-panel h2::after { content:" ✦"; color:#e8c06a; }
+        .ice-panel input[type="range"] { accent-color:#7dd3fc; }
+        .ice-panel .field { color:#a9cdef; }
+        button.iobtn { border-color:#7dd3fc; color:#bae6fd; box-shadow:0 0 10px rgba(125,211,252,0.2); }
+        button.iobtn:hover { background:#7dd3fc; color:#0a1a2e; box-shadow:0 0 18px #7dd3fc; }
+        button.iolink { border-color:#e8c06a; color:#f3d894; }
+        button.iolink:hover { background:#e8c06a; color:#2a1f06; box-shadow:0 0 16px #e8c06a; }
+        #ioStatus { margin-top:10px; font-size:0.75rem; color:#bae6fd; min-height:1em; }
+        #ioResult { margin-top:18px; display:none; flex-direction:column; align-items:center; gap:12px; }
+        #ioResult img { max-width:100%; border:1px solid #3b82c4; border-radius:6px; }
     </style>
 </head>
 
@@ -327,13 +365,13 @@
         <button id="tabCrystalBtn">◈ CRYSTAL</button>
         <button id="tabClockBtn">◈ CLOCKWORK</button>
         <button id="tabDeepBtn">◈ DEEP SEA</button>
+        <button id="tabIceBtn">◈ ICE OUJI</button>
     </div>
 
     <div id="tab-matrix" class="tab-content active">
 
     <div class="container">
-        <textarea id="input" placeholder="Type your dialogue...
-Select text, then use the tools below to style just that part."></textarea>
+        <textarea id="input"></textarea>
         <div class="canvas-wrapper">
             <canvas id="output" width="410" height="350"></canvas>
         </div>
@@ -472,7 +510,7 @@ Select text, then use the tools below to style just that part."></textarea>
     <!-- ════════ CRYSTAL TAB - shimmering purple-cave dialogue ════════ -->
     <div id="tab-crystal" class="tab-content">
         <div class="crystal-wrap">
-            <textarea id="cInput" placeholder="Speak, and the crystal waters shall shimmer your words…"></textarea>
+            <textarea id="cInput"></textarea>
 
             <div class="crystal-canvas-wrap">
                 <canvas id="cOutput" width="520" height="240"></canvas>
@@ -489,10 +527,6 @@ Select text, then use the tools below to style just that part."></textarea>
                     <label class="field">Caustics <input type="range" id="cCaustics" min="0" max="9" value="5"></label>
                     <label class="field">Glow <input type="range" id="cGlow" min="0" max="40" value="18"></label>
                     <label class="field">Font Size <input type="range" id="cFontSize" min="14" max="56" value="30"></label>
-                </div>
-                <div class="hint" style="color:#9a7fc0;">
-                    A crystalline cave dialogue box - your words drift and glint on shimmering purple water.
-                    Drag <strong>Hue</strong> from cave-blue → amethyst → rose-quartz. Newlines make new lines.
                 </div>
             </div>
 
@@ -518,7 +552,7 @@ Select text, then use the tools below to style just that part."></textarea>
     <!-- ════════ CLOCKWORK TAB - mysterious brass clocks &amp; gears ════════ -->
     <div id="tab-clockwork" class="tab-content">
         <div class="clock-wrap">
-            <textarea id="cwInput" placeholder="Wind the gears and let time speak your words…"></textarea>
+            <textarea id="cwInput"></textarea>
 
             <div class="clock-canvas-wrap">
                 <canvas id="cwOutput" width="520" height="240"></canvas>
@@ -541,10 +575,6 @@ Select text, then use the tools below to style just that part."></textarea>
                         <input type="file" id="cwFontFile" accept=".ttf,.otf,.woff,.woff2,font/*" style="font-size:0.7rem;max-width:190px;">
                         <span id="cwFontName">Font: Georgia (default)</span>
                     </div>
-                </div>
-                <div class="hint" style="color:#bb965a;">
-                    Mysterious brass clockwork - rotating gears, a ghostly clock face with sweeping hands, and engraved text that ticks.
-                    <strong>Upload your own font</strong> above and it's used instantly (and saved to the shared library for everyone).
                 </div>
             </div>
 
@@ -570,7 +600,7 @@ Select text, then use the tools below to style just that part."></textarea>
     <!-- ════════ DEEP SEA TAB - the purple abyss ════════ -->
     <div id="tab-deep" class="tab-content">
         <div class="deep-wrap">
-            <textarea id="dsInput" placeholder="From the lightless deep, let your words glow…"></textarea>
+            <textarea id="dsInput"></textarea>
 
             <div class="deep-canvas-wrap">
                 <canvas id="dsOutput" width="520" height="240"></canvas>
@@ -586,10 +616,6 @@ Select text, then use the tools below to style just that part."></textarea>
                     <label class="field">Murk <input type="range" id="dsMurk" min="0" max="10" value="6"></label>
                     <label class="field">Glow <input type="range" id="dsGlow" min="0" max="40" value="20"></label>
                     <label class="field">Font Size <input type="range" id="dsFontSize" min="14" max="56" value="28"></label>
-                </div>
-                <div class="hint" style="color:#8579c4;">
-                    You're in the lightless void of a purple sea - marine snow drifts down, bioluminescent motes pulse, bubbles rise,
-                    and your words glow from a softly breathing membrane. Crank <strong>Murk</strong> to let the abyss close in.
                 </div>
             </div>
 
@@ -609,6 +635,47 @@ Select text, then use the tools below to style just that part."></textarea>
             </div>
 
             <div id="dsStatus"></div>
+        </div>
+    </div>
+
+    <!-- ════════ ICE OUJI TAB - frozen royalty ════════ -->
+    <div id="tab-ice" class="tab-content">
+        <div class="ice-wrap">
+            <textarea id="ioInput"></textarea>
+
+            <div class="ice-canvas-wrap">
+                <canvas id="ioOutput" width="520" height="240"></canvas>
+            </div>
+
+            <div class="ice-panel">
+                <h2>Frost &amp; Filigree</h2>
+                <div class="row">
+                    <label class="field">Frost Hue <input type="range" id="ioHue" min="185" max="225" value="205"></label>
+                    <label class="field">Snowfall <input type="range" id="ioSnow" min="0" max="60" value="30"></label>
+                    <label class="field">Shimmer <input type="range" id="ioShimmer" min="0" max="120" value="40"></label>
+                    <label class="field">Sway <input type="range" id="ioSway" min="0" max="12" value="4"></label>
+                    <label class="field">Royal Gold <input type="range" id="ioGold" min="0" max="10" value="7"></label>
+                    <label class="field">Glow <input type="range" id="ioGlow" min="0" max="40" value="18"></label>
+                    <label class="field">Font Size <input type="range" id="ioFontSize" min="14" max="56" value="28"></label>
+                </div>
+            </div>
+
+            <div class="generate-row">
+                <label class="field inline" style="text-transform:uppercase;font-size:0.72rem;color:#a9cdef;">
+                    Frames <input type="range" id="ioFrames" min="8" max="48" value="28" style="width:110px;"> <span class="val" id="ioFramesVal" style="color:#e0f2fe;">28</span>
+                </label>
+                <button id="ioRecordBtn" class="big iobtn">❄ Generate GIF</button>
+            </div>
+
+            <div id="ioResult">
+                <img id="ioResultImg" alt="ice ouji dialogue gif">
+                <div class="result-btns">
+                    <button id="ioCopyLinkBtn" class="iolink" title="Upload &amp; copy a link that auto-plays in Discord/Slack/etc.">📎 Copy Link</button>
+                    <button id="ioDownloadBtn" class="iobtn">⬇ Download</button>
+                </div>
+            </div>
+
+            <div id="ioStatus"></div>
         </div>
     </div>
 
@@ -1235,7 +1302,8 @@ Select text, then use the tools below to style just that part."></textarea>
             green:   { glowS: '#00ff00', glowF: 'rgba(140,255,140,0.55)', dim: 'rgba(0,170,0,0.30)',  glyph: null, glyphChance: 0 },
             crystal: { glowS: '#c084fc', glowF: 'rgba(216,180,254,0.55)', dim: 'rgba(150,90,210,0.30)', glyph: '✦', glyphChance: 0.12 },
             clock:   { glowS: '#ffb347', glowF: 'rgba(255,200,120,0.50)', dim: 'rgba(180,120,40,0.28)', glyph: '⚙', glyphChance: 0.10 },
-            deep:    { glowS: '#67e8f9', glowF: 'rgba(150,210,255,0.45)', dim: 'rgba(90,80,190,0.24)',  glyph: '∘', glyphChance: 0.14 }
+            deep:    { glowS: '#67e8f9', glowF: 'rgba(150,210,255,0.45)', dim: 'rgba(90,80,190,0.24)',  glyph: '∘', glyphChance: 0.14 },
+            ice:     { glowS: '#bae6fd', glowF: 'rgba(224,242,255,0.55)', dim: 'rgba(120,170,220,0.26)', glyph: '❄', glyphChance: 0.12 }
         };
         let cols = 0, drops = [], glowCol = [];
         function initMatrix() {
@@ -1253,7 +1321,8 @@ Select text, then use the tools below to style just that part."></textarea>
             const cls = document.body.classList;
             const theme = cls.contains('theme-clockwork') ? 'clock'
                 : cls.contains('theme-crystal') ? 'crystal'
-                : cls.contains('theme-deep') ? 'deep' : 'green';
+                : cls.contains('theme-deep') ? 'deep'
+                : cls.contains('theme-ice') ? 'ice' : 'green';
             const pal = MATRIX_PAL[theme];
             mctx.fillStyle = 'rgba(5,5,5,0.10)';   // fading trail
             mctx.fillRect(0, 0, mcanvas.width, mcanvas.height);
@@ -1327,7 +1396,8 @@ Select text, then use the tools below to style just that part."></textarea>
             matrix:    { btn: document.getElementById('tabMatrixBtn'),  panel: document.getElementById('tab-matrix') },
             crystal:   { btn: document.getElementById('tabCrystalBtn'), panel: document.getElementById('tab-crystal') },
             clockwork: { btn: document.getElementById('tabClockBtn'),   panel: document.getElementById('tab-clockwork') },
-            deep:      { btn: document.getElementById('tabDeepBtn'),    panel: document.getElementById('tab-deep') }
+            deep:      { btn: document.getElementById('tabDeepBtn'),    panel: document.getElementById('tab-deep') },
+            ice:       { btn: document.getElementById('tabIceBtn'),     panel: document.getElementById('tab-ice') }
         };
         window.JUKO_TAB = 'matrix';
         function switchTab(name) {
@@ -1340,6 +1410,7 @@ Select text, then use the tools below to style just that part."></textarea>
             document.body.classList.toggle('theme-crystal', name === 'crystal');
             document.body.classList.toggle('theme-clockwork', name === 'clockwork');
             document.body.classList.toggle('theme-deep', name === 'deep');
+            document.body.classList.toggle('theme-ice', name === 'ice');
         }
         Object.keys(tabs).forEach(k => tabs[k].btn.addEventListener('click', () => switchTab(k)));
     })();
@@ -2115,6 +2186,262 @@ Select text, then use the tools below to style just that part."></textarea>
                 setDS('✅ Link copied! Plays animated when pasted in Discord/Slack: ' + url);
             } catch (err) {
                 setDS('⚠ Upload failed: ' + err.message);
+            } finally {
+                this.disabled = false; this.textContent = old;
+            }
+        });
+
+        setInterval(draw, 1000 / 12);
+    })();
+    </script>
+
+    <!-- ════════ ICE OUJI ENGINE ════════ -->
+    <script>
+    (function () {
+        const ioInput = document.getElementById('ioInput');
+        const canvas = document.getElementById('ioOutput');
+        const ctx = canvas.getContext('2d');
+        const ioHue = document.getElementById('ioHue');
+        const ioSnow = document.getElementById('ioSnow');
+        const ioShimmer = document.getElementById('ioShimmer');
+        const ioSway = document.getElementById('ioSway');
+        const ioGold = document.getElementById('ioGold');
+        const ioGlow = document.getElementById('ioGlow');
+        const ioFontSize = document.getElementById('ioFontSize');
+        const ioFrames = document.getElementById('ioFrames');
+        const ioFramesVal = document.getElementById('ioFramesVal');
+        const ioRecordBtn = document.getElementById('ioRecordBtn');
+        const ioResult = document.getElementById('ioResult');
+        const ioResultImg = document.getElementById('ioResultImg');
+        const ioStatus = document.getElementById('ioStatus');
+        const ICE_FONT = 'Georgia, "Times New Roman", serif';
+        const setIO = (m) => { ioStatus.textContent = m; };
+
+        const flakes = Array.from({ length: 60 }, () => ({
+            x: Math.random(), y: Math.random(), sp: 0.2 + Math.random() * 0.6,
+            sz: 0.8 + Math.random() * 2.2, drift: Math.random() * Math.PI * 2,
+            star: Math.random() < 0.35, spin: (Math.random() - 0.5) * 2
+        }));
+
+        function roundRect(x, y, w, h, r) {
+            ctx.beginPath();
+            ctx.moveTo(x + r, y);
+            ctx.arcTo(x + w, y, x + w, y + h, r);
+            ctx.arcTo(x + w, y + h, x, y + h, r);
+            ctx.arcTo(x, y + h, x, y, r);
+            ctx.arcTo(x, y, x + w, y, r);
+            ctx.closePath();
+        }
+        function wrapLines(text, maxW) {
+            const out = [];
+            text.split('\n').forEach(para => {
+                const words = para.split(' ');
+                let cur = '';
+                words.forEach(w => {
+                    const test = cur ? cur + ' ' + w : w;
+                    if (ctx.measureText(test).width > maxW && cur) { out.push(cur); cur = w; }
+                    else cur = test;
+                });
+                out.push(cur);
+            });
+            return out.length ? out : [''];
+        }
+        // a six-armed snowflake
+        function snowflake(x, y, s, rot, alpha, hue) {
+            ctx.save();
+            ctx.translate(x, y); ctx.rotate(rot);
+            ctx.globalAlpha = alpha;
+            ctx.strokeStyle = `hsl(${hue},70%,92%)`;
+            ctx.lineWidth = 1;
+            ctx.shadowColor = `hsl(${hue},90%,85%)`; ctx.shadowBlur = 4;
+            for (let a = 0; a < 6; a++) {
+                ctx.rotate(Math.PI / 3);
+                ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(0, -s); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(0, -s * 0.6); ctx.lineTo(s * 0.28, -s * 0.82); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(0, -s * 0.6); ctx.lineTo(-s * 0.28, -s * 0.82); ctx.stroke();
+            }
+            ctx.restore();
+        }
+        // royal gold corner filigree (drawn into the box from corner)
+        function flourish(x, y, rot, s, hue, gold, glow) {
+            ctx.save();
+            ctx.translate(x, y); ctx.rotate(rot);
+            ctx.strokeStyle = `hsla(45,82%,66%,${gold})`;
+            ctx.lineWidth = 1.6;
+            ctx.shadowColor = `hsla(45,90%,70%,${gold})`; ctx.shadowBlur = glow * 0.4;
+            ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(s, 0); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(0, s); ctx.stroke();
+            ctx.beginPath(); ctx.arc(s * 0.95, s * 0.95, s * 0.55, Math.PI, Math.PI * 1.62); ctx.stroke();
+            ctx.beginPath(); ctx.arc(s * 1.55, s * 0.28, s * 0.3, Math.PI * 0.5, Math.PI * 1.5); ctx.stroke();
+            ctx.shadowBlur = 0;
+            ctx.fillStyle = `hsla(48,92%,78%,${gold})`;
+            ctx.beginPath(); ctx.arc(0, 0, 2.4, 0, Math.PI * 2); ctx.fill();
+            ctx.restore();
+        }
+
+        let recording = false, frames = [], maxFrames = 28, lastUrl = null;
+
+        function draw() {
+            if (window.JUKO_TAB !== 'ice' && !recording) return;
+            const t = performance.now() / 1000;
+            const hue = +ioHue.value;
+            const snowN = +ioSnow.value | 0;
+            const shimSp = +ioShimmer.value / 30;
+            const sway = +ioSway.value;
+            const gold = Math.min(1, +ioGold.value / 10);
+            const glow = +ioGlow.value;
+            const fs = +ioFontSize.value;
+
+            ctx.font = fs + 'px ' + ICE_FONT;
+            const maxTextW = 560;
+            const raw = ioInput.value;
+            const lines = raw.trim() ? wrapLines(raw, maxTextW) : ['…'];
+            const lineH = Math.round(fs * 1.5);
+            let textW = 0;
+            for (const ln of lines) textW = Math.max(textW, ctx.measureText(ln).width);
+            const padX = 56, padY = 48;
+            const W = Math.max(400, Math.ceil(Math.min(maxTextW, textW) + padX * 2));
+            const H = Math.max(190, lines.length * lineH + padY * 2);
+            if (canvas.width !== W || canvas.height !== H) { canvas.width = W; canvas.height = H; }
+            ctx.font = fs + 'px ' + ICE_FONT;
+            ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+
+            // ── cold royal background ──
+            const bg = ctx.createLinearGradient(0, 0, 0, H);
+            bg.addColorStop(0, `hsl(${hue + 10},55%,14%)`);
+            bg.addColorStop(0.5, `hsl(${hue},60%,9%)`);
+            bg.addColorStop(1, `hsl(${hue - 8},65%,5%)`);
+            ctx.fillStyle = bg; ctx.fillRect(0, 0, W, H);
+            // soft icy aurora glow up top
+            ctx.save(); ctx.globalCompositeOperation = 'lighter';
+            const au = ctx.createLinearGradient(0, 0, 0, H * 0.7);
+            au.addColorStop(0, `hsla(${hue + 15},90%,70%,0.10)`);
+            au.addColorStop(1, 'hsla(0,0%,0%,0)');
+            ctx.fillStyle = au; ctx.fillRect(0, 0, W, H * 0.7);
+            ctx.restore();
+
+            // ── frosted royal plaque ──
+            const m = 15, bx = m, by = m, bw = W - 2 * m, bh = H - 2 * m, r = 16;
+            const boxGrad = ctx.createLinearGradient(0, by, 0, by + bh);
+            boxGrad.addColorStop(0, `hsla(${hue + 8},65%,42%,0.30)`);
+            boxGrad.addColorStop(0.5, `hsla(${hue},60%,24%,0.42)`);
+            boxGrad.addColorStop(1, `hsla(${hue - 6},65%,14%,0.5)`);
+            roundRect(bx, by, bw, bh, r); ctx.fillStyle = boxGrad; ctx.fill();
+            // frosted top sheen
+            roundRect(bx + 5, by + 5, bw - 10, bh * 0.4, r * 0.7);
+            const sheen = ctx.createLinearGradient(0, by, 0, by + bh * 0.45);
+            sheen.addColorStop(0, 'hsla(0,0%,100%,0.14)');
+            sheen.addColorStop(1, 'hsla(0,0%,100%,0)');
+            ctx.fillStyle = sheen; ctx.fill();
+            // shimmering ice border
+            const sweep = (t * shimSp * 0.4) % 1;
+            const brd = ctx.createLinearGradient(bx, by, bx + bw, by + bh);
+            brd.addColorStop(0, `hsl(${hue},80%,80%)`);
+            brd.addColorStop(Math.min(0.98, Math.max(0.02, sweep)), 'hsl(0,0%,100%)');
+            brd.addColorStop(1, `hsl(${hue + 10},75%,72%)`);
+            roundRect(bx, by, bw, bh, r);
+            ctx.lineWidth = 2.4; ctx.strokeStyle = brd;
+            ctx.shadowColor = `hsl(${hue},100%,82%)`; ctx.shadowBlur = glow * (0.7 + 0.3 * Math.sin(t * 1.6));
+            ctx.stroke();
+            ctx.shadowBlur = 0;
+            // gold inner accent line
+            if (gold > 0) {
+                ctx.lineWidth = 1; ctx.strokeStyle = `hsla(45,80%,64%,${gold * 0.8})`;
+                roundRect(bx + 7, by + 7, bw - 14, bh - 14, r * 0.6); ctx.stroke();
+                // corner filigree
+                const fs2 = Math.min(20, bw * 0.06);
+                flourish(bx + 4, by + 4, 0, fs2, hue, gold, glow);
+                flourish(bx + bw - 4, by + 4, Math.PI / 2, fs2, hue, gold, glow);
+                flourish(bx + bw - 4, by + bh - 4, Math.PI, fs2, hue, gold, glow);
+                flourish(bx + 4, by + bh - 4, -Math.PI / 2, fs2, hue, gold, glow);
+            }
+
+            // ── regal text: white core, icy glow, soft sway ──
+            const totalH = lines.length * lineH;
+            const y0 = by + bh / 2 - totalH / 2 + lineH / 2;
+            lines.forEach((ln, i) => {
+                const dx = Math.sin(t * shimSp * 0.5 + i * 0.5) * (sway * 0.4);
+                const dy = Math.cos(t * shimSp * 0.4 + i * 0.4) * (sway * 0.2);
+                const yy = y0 + i * lineH + dy;
+                ctx.shadowColor = `hsl(${hue},100%,75%)`; ctx.shadowBlur = glow * 0.8;
+                ctx.fillStyle = `hsl(${hue + 5},100%,96%)`;
+                ctx.fillText(ln, W / 2 + dx, yy);
+                ctx.shadowBlur = 0;
+            });
+
+            // ── drifting snow + frost sparkles (drawn on top) ──
+            for (let i = 0; i < snowN && i < flakes.length; i++) {
+                const f = flakes[i];
+                const y = ((f.y + t * f.sp * 0.04) % 1) * H;
+                const x = f.x * W + Math.sin(t * 0.4 + f.drift) * 10;
+                if (f.star) {
+                    snowflake(x, y, f.sz * 2.4, t * f.spin, 0.7, hue);
+                } else {
+                    ctx.globalAlpha = 0.5;
+                    ctx.fillStyle = `hsl(${hue},60%,95%)`;
+                    ctx.shadowColor = `hsl(${hue},90%,88%)`; ctx.shadowBlur = 4;
+                    ctx.beginPath(); ctx.arc(x, y, f.sz, 0, Math.PI * 2); ctx.fill();
+                    ctx.shadowBlur = 0; ctx.globalAlpha = 1;
+                }
+            }
+
+            if (recording && frames.length < maxFrames) {
+                frames.push(canvas.toDataURL('image/png'));
+                if (frames.length === maxFrames) { recording = false; compile(); }
+            }
+        }
+
+        function compile() {
+            ioRecordBtn.textContent = 'Compiling…';
+            setIO('Compiling ' + frames.length + ' frames…');
+            gifshot.createGIF({
+                images: frames, gifWidth: canvas.width, gifHeight: canvas.height,
+                interval: 0.07, numWorkers: 2, sampleInterval: 1
+            }, function (obj) {
+                if (!obj.error) {
+                    if (lastUrl) URL.revokeObjectURL(lastUrl);
+                    lastUrl = obj.image;
+                    ioResultImg.src = obj.image;
+                    ioResult.style.display = 'flex';
+                    setIO('Done! Copy or download below.');
+                } else {
+                    setIO('GIF failed: ' + (obj.errorMsg || 'try shorter text.'));
+                }
+                ioRecordBtn.textContent = '❄ Generate GIF';
+                ioRecordBtn.disabled = false;
+                frames = [];
+            });
+        }
+
+        ioRecordBtn.addEventListener('click', () => {
+            if (!ioInput.value.trim()) { setIO('Type some dialogue first!'); return; }
+            maxFrames = parseInt(ioFrames.value);
+            recording = true; frames = [];
+            ioRecordBtn.disabled = true; ioRecordBtn.textContent = 'Recording…';
+            setIO('Recording ' + maxFrames + ' frames…');
+        });
+        ioFrames.addEventListener('input', () => ioFramesVal.textContent = ioFrames.value);
+
+        document.getElementById('ioDownloadBtn').addEventListener('click', () => {
+            if (!ioResultImg.src) return;
+            const a = document.createElement('a');
+            a.download = 'ice-ouji-dialogue.gif'; a.href = ioResultImg.src; a.click();
+        });
+
+        document.getElementById('ioCopyLinkBtn').addEventListener('click', async function () {
+            if (!ioResultImg.src) return;
+            const old = this.textContent;
+            this.disabled = true; this.textContent = '⏳ Uploading…';
+            setIO('Uploading GIF…');
+            try {
+                if (!window.jukoCloud || !window.jukoCloud.shareGif) throw new Error('cloud pipeline unavailable');
+                const blob = await (await fetch(ioResultImg.src)).blob();
+                const text = (ioInput.value || '').replace(/\s+/g, ' ').trim().slice(0, 80);
+                const url = await window.jukoCloud.shareGif(blob, text, canvas.width, canvas.height);
+                try { await navigator.clipboard.writeText(url); } catch (_) {}
+                setIO('✅ Link copied! Plays animated when pasted in Discord/Slack: ' + url);
+            } catch (err) {
+                setIO('⚠ Upload failed: ' + err.message);
             } finally {
                 this.disabled = false; this.textContent = old;
             }
